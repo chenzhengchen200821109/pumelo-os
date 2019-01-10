@@ -1,32 +1,82 @@
 #include "boot.h"
 
+/* 
+ * define static symbols 
+ */
 .equ LOADER_STACK_TOP, 0x900
 .equ SELECTOR_CODE, 0x8
 .equ SELECTOR_DATA, 0x10
 .equ SELECTOR_VIDEO, 0x18
 
-
+/* code segment descriptor */
 .equ DESC_CODE_WORD0, 0xffff
 .equ DESC_CODE_WORD1, 0x0
 .equ DESC_CODE_WORD2, 0x9800 
 .equ DESC_CODE_WORD3, 0x00cf
 
+/* data segment descriptor */
 .equ DESC_DATA_WORD0, 0xffff
 .equ DESC_DATA_WORD1, 0x0
 .equ DESC_DATA_WORD2, 0x9200
 .equ DESC_DATA_WORD3, 0x00cf
 
+/* video data segment descriptor */
 .equ DESC_VIDEO_WORD0, 0x7
 .equ DESC_VIDEO_WORD1, 0x8000
 .equ DESC_VIDEO_WORD2, 0x920b
 .equ DESC_VIDEO_WORD3, 0xc0
 
-.equ CRO_PE_ON, 0x1
+.equ CRO_PE_ON, 0x00000001
+.equ CR0_PG_ON, 0x80000000
+
+.equ PG_P, 0x1
+.equ PG_RW_R, 0x0
+.equ PG_RW_W, 0x2
+.equ PG_US_S, 0x0
+.equ PG_US_U, 0x4
+
+.equ PAGE_DIR_TABLE_ADDR, 0x100000        /* 1MB = 0xfffff */
+.equ KERNEL_START_VA, 0xc0000000
 
 .section .text
 .global loader
 .code16
 loader:
+
+/* INT 0x15 -- get physical memory capacity */
+    xorl %ebx, %ebx
+    movl $0x534d4150, %edx
+    mov $ARDS_BUF, %di
+.e820_mem_get_loop:
+    movl $0xe820, %eax
+    movl $0x14, %ecx
+    int $0x15
+    jc .e820_failed                /* jmp if CF=1 */
+    addw %cx, %di
+    incw ARDS_NUM
+    cmpl $0x0, %ebx
+    jnz .e820_mem_get_loop
+
+    movw ARDS_NUM, %cx
+    movl $ARDS_BUF, %ebx
+    xorl %edx, %edx
+
+.find_max_mem_area:
+    movl (%ebx), %eax
+    add 8(%ebx), %eax
+    addl $0x14, %ebx
+    cmpl %eax, %edx
+    jge .next_ards
+    movl %eax, %edx
+.next_ards:
+    loop .find_max_mem_area
+    jmp .mem_get_ok
+
+.e820_failed:
+    cli                              /* disable interrupts */
+    hlt
+.mem_get_ok:
+    movl %edx, TOTAL_MEM_BYTES
 
 /* INT 0x10 -- print out a string */
     movw $LOADER_STACK_TOP, %sp
@@ -68,12 +118,81 @@ p_mode_start:
     /* manipulate graphic memory directly */
     movb $'P', %gs:160
 
+    /* */
+    call setup_page
+    sgdt GDT_DESC
+
+    /* video data segment */
+    movl $0x1, %edi
+    movl GDT_DESC(, %edi, 0x2), %ebx
+
+    movl $0x1c, %esi
+    orl $KERNEL_START_VA, (%ebx, %esi, 0x1)
+
+    addl $KERNEL_START_VA, GDT_DESC(, %edi, 0x2)
+    addl $KERNEL_START_VA, %esp
+
+    movl $PAGE_DIR_TABLE_ADDR, %eax
+    movl %eax, %cr3
+
+    movl %cr0, %eax
+    orl $CR0_PG_ON, %eax
+    movl %eax, %cr0
+
+    lgdt GDT_DESC
+
+    movb $'V', %gs:160
+
 spin:
     jmp spin
 
+setup_page:
+/* setup page directory */
+    movl $0x400, %ecx
+    movl $0x0, %esi
+.clear_page_dir:
+    movl $0x0, PAGE_DIR_TABLE_ADDR(%esi)
+    addl $0x4, %esi
+    loop .clear_page_dir
+.create_pde:
+    movl PAGE_DIR_TABLE_ADDR, %eax
+    addl $0x1000, %eax                 /* %eax store the first page table address */
+    movl %eax, %ebx
+    orl $(PG_US_U | PG_RW_W | PG_P), %eax
+    movl %eax, (PAGE_DIR_TABLE_ADDR)
+    movl $0xc00, %edi
+    movl %eax, PAGE_DIR_TABLE_ADDR(%edi)
+
+    subl $0x1000, %eax                 /* %eax store the last page direcotry entry */
+    movl $4092, %edi
+    movl %eax, PAGE_DIR_TABLE_ADDR(%edi)
+
+/* PTE */
+    movl $256, %ecx
+    movl $0x0, %esi
+    movl $(PG_US_U | PG_RW_R | PG_P), %edx
+.create_pte:
+    movl %edx, (%ebx, %esi, 4)
+    addl 4096, %edx
+    incl %esi
+    loop .create_pte
+/* kernel PDE */
+    movl $PAGE_DIR_TABLE_ADDR, %eax
+    addl 0x2000, %eax
+    orl $(PG_US_U | PG_RW_W | PG_P), %eax
+    movl $PAGE_DIR_TABLE_ADDR, %ebx
+    movl $254, %ecx
+    movl $769, %esi
+.create_kernel_pde:
+    movl %eax, (%ebx, %esi, 4)
+    incl %esi
+    addl 0x1000, %eax
+    loop .create_kernel_pde
+    ret
+
+.section .data
 loadermesg:
     .ascii "2 Loader in real."
-
 .p2align 2
 GDT_BASE:
     .word 0, 0
@@ -99,5 +218,13 @@ GDT_END:
 GDT_DESC:
     .word GDT_LIMIT
     .long GDT_BASE
-
+.global TOTAL_MEM_BYTES
+TOTAL_MEM_BYTES:
+    .long 0
+ARDS_BUF:
+    .rept 100
+    .long 0
+    .endr
+ARDS_NUM:
+    .word 0
 

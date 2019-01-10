@@ -27,7 +27,7 @@ $(LOADER): loader.S
 	$(AS) $(INCLUDE) -o $(LOADER).o loader.S
 	$(LD) -N -e loader -Ttext 0x900 -s -o $(LOADER) $(LOADER).o
 	$(OBJCOPY) -S -O binary $(LOADER)
-	$(DD) if=$(LOADER) of=$(HDIMG) bs=512 count=4 seek=2 conv=notrunc
+	$(DD) if=$(LOADER) of=$(HDIMG) bs=512 count=8 seek=2 conv=notrunc
 
 $(HDIMG):
 	bximage -hd=60 -mode=create -imgmode=flat -q $(HDIMG)
