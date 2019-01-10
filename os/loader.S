@@ -93,7 +93,6 @@ loader:
     outb %al, $0x92
 
 /* should we disable interrupt before switching to protector mode */
-    #cli
 
 /* load gdt descriptor */
     lgdt GDT_DESC
@@ -142,6 +141,7 @@ p_mode_start:
     lgdt GDT_DESC
 
     movb $'V', %gs:160
+    movb $0xa4, %gs:161
 
 spin:
     jmp spin
@@ -150,30 +150,33 @@ setup_page:
 /* setup page directory */
     movl $0x400, %ecx
     movl $0x0, %esi
+    movl $PAGE_DIR_TABLE_ADDR, %eax
 .clear_page_dir:
-    movl $0x0, PAGE_DIR_TABLE_ADDR(%esi)
+    movl $0x0, (%eax, %esi, 0x1)
     addl $0x4, %esi
     loop .clear_page_dir
 .create_pde:
-    movl PAGE_DIR_TABLE_ADDR, %eax
-    addl $0x1000, %eax                 /* %eax store the first page table address */
+    movl $PAGE_DIR_TABLE_ADDR, %eax
+    addl $0x1000, %eax  /* %eax store the first page table address */
     movl %eax, %ebx
     orl $(PG_US_U | PG_RW_W | PG_P), %eax
-    movl %eax, (PAGE_DIR_TABLE_ADDR)
-    movl $0xc00, %edi
-    movl %eax, PAGE_DIR_TABLE_ADDR(%edi)
+    movl $PAGE_DIR_TABLE_ADDR, %ecx
+    movl %eax, (%ecx)
+    #movl $0xc00, %edi
+    movl $768, %edi
+    movl %eax, (%ecx, %edi, 0x4)
 
-    subl $0x1000, %eax                 /* %eax store the last page direcotry entry */
+    subl $0x1000, %eax  /* %eax store the last page direcotry entry */
     movl $4092, %edi
-    movl %eax, PAGE_DIR_TABLE_ADDR(%edi)
+    movl %eax, (%ecx, %edi, 0x1)
 
 /* PTE */
     movl $256, %ecx
     movl $0x0, %esi
     movl $(PG_US_U | PG_RW_R | PG_P), %edx
 .create_pte:
-    movl %edx, (%ebx, %esi, 4)
-    addl 4096, %edx
+    movl %edx, (%ebx, %esi, 0x4)
+    addl $0x1000, %edx
     incl %esi
     loop .create_pte
 /* kernel PDE */
@@ -184,7 +187,7 @@ setup_page:
     movl $254, %ecx
     movl $769, %esi
 .create_kernel_pde:
-    movl %eax, (%ebx, %esi, 4)
+    movl %eax, (%ebx, %esi, 0x4)
     incl %esi
     addl 0x1000, %eax
     loop .create_kernel_pde
