@@ -41,7 +41,7 @@ start:
 
     movl $LOADER_START_SECTOR, %eax
     movw $LOADER_BASE_ADDR, %bx
-    movw $0x3, %cx
+    movw $0x8, %cx
     call rd_disk_m_16
 
     jmp LOADER_BASE_ADDR
