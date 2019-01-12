@@ -194,9 +194,6 @@ setup_page:
     ret
 
 .section .data
-loadermesg:
-    .ascii "2 Loader in real."
-.p2align 2
 GDT_BASE:
     .word 0, 0
     .byte 0, 0, 0, 0
@@ -230,4 +227,6 @@ ARDS_BUF:
     .endr
 ARDS_NUM:
     .word 0
+loadermesg:
+    .ascii "2 Loader in real."
 

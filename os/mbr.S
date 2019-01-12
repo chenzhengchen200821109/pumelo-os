@@ -41,42 +41,45 @@ start:
 
     movl $LOADER_START_SECTOR, %eax
     movw $LOADER_BASE_ADDR, %bx
-    movw $0x8, %cx
+    movw $0x3, %cx
     call rd_disk_m_16
 
     jmp LOADER_BASE_ADDR
 
 # rd_disk_m_16
-.type rd_disk_m_16, @function
 rd_disk_m_16:
-    pushl %eax
-    pushl %ebx
-    pushl %ecx
+
+    movl %eax, %esi
+    movw %cx, %di
 
     movw $0x1f2, %dx
-    movb $0x01, %al
+    movb %cl, %al
     outb %al, %dx
+
+    movl %esi, %eax
 
     movw $0x1f3, %dx     # 0x1f3 7~0
-    movb $0x02, %al 
     outb %al, %dx
 
-    inc %dx              # 0x1f4 15~8
-    movb $0x00, %al
+    movb $8, %cl         # 0x1f4 15~8
+    shr %cl, %eax
+    movw $0x1f4, %dx
     out %al, %dx
 
-    inc %dx              # 0x1f5 23~16
+    shr %cl, %eax        # 0x1f5 23~16
+    movw $0x1f5, %dx
     out %al, %dx
 
-    inc %dx              # 0x1f6
-    movb $0xe0, %al
+    shr %cl, %eax        # 0x1f6
+    andb $0xf, %al
+    orb $0xe0, %al
+    movw $0x1f6, %dx
     out %al, %dx
 
     movw $0x1f7, %dx
     movb $0x20, %al
     out %al, %dx
 
-    movw $0x1f7, %dx
 not_ready:
     nop
     nop
@@ -85,7 +88,10 @@ not_ready:
     cmpb $0x08, %al
     jnz not_ready
 
-    movw $256, %cx
+    movw %di, %ax       /* */
+    movw $256, %dx
+    mul %dx
+    movw %ax, %cx
     movw $0x1f0, %dx
 
 go_on_read:
@@ -93,10 +99,6 @@ go_on_read:
     movw %ax, (%bx)
     add $2, %bx
     loop go_on_read
-
-    popl %ecx
-    popl %ebx
-    popl %eax
     ret
 
 message:
