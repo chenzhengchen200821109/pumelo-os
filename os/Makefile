@@ -16,7 +16,7 @@ LOADER = loader
 MBR = mbr
 KERNEL = main
 
-all: $(HDIMG) $(LOADER) $(MBR) $(KINCLUDE)$(SOURCE)
+all: $(HDIMG) $(LOADER) $(MBR) $(KINCLUDE)$(KERNEL)
 
 $(MBR): mbr.S
 	$(AS) $(INCLUDE) -o $(MBR).o mbr.S
@@ -37,7 +37,7 @@ $(HDIMG):
 $(KERNEL): $(KERNELDIR)main.c
 	$(CC) -c -o $(KERNELDIR)$(KERNEL).o $(KERNELDIR)main.c
 	$(LD) -N -e main -Ttext 0xc0001500 -s -o $(KERNELDIR)$(KERNEL) $(KERNELDIR)$(KERNEL).o
-	$(DD) if=$(KERNELDIR)$(KERNEL) of=$(HDIMG) bs=512 count=128 seek=10 conv=notrunc
+	$(DD) if=$(KERNELDIR)$(KERNEL) of=$(HDIMG) bs=512 count=127 seek=10 conv=notrunc
 
 clean:
 	rm hd60M.img loader mbr loader.o mbr.o $(KERNELDIR)$(KERNEL) $(KERNELDIR)$(KERNEL).o

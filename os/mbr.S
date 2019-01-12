@@ -44,6 +44,16 @@ start:
     movw $0x8, %cx
     call rd_disk_m_16
 
+    /* load OS kernel */
+    movl $KERNEL_START_SECTOR, %eax
+    movw $0x7000, %bx
+    movw %bx, %ds
+    movw $0x0, %bx
+    movw $127, %cx                    /* number of sectors to read */
+    call rd_disk_m_16
+
+    movw $0x0, %bx
+    movw %bx, %ds
     jmp LOADER_BASE_ADDR
 
 # rd_disk_m_16
@@ -88,7 +98,7 @@ not_ready:
     cmpb $0x08, %al
     jnz not_ready
 
-    movw %di, %ax       /* */
+    movw %di, %ax       /* %di = 128 */
     movw $256, %dx
     mul %dx
     movw %ax, %cx
@@ -103,5 +113,7 @@ go_on_read:
 
 message:
     .ascii "1 MBR"
+    .equ KERNEL_START_SECTOR, 0xa
+    .equ KERNEL_BASE_ADDR, 0x70000
     .org 510, 0
     .word 0xaa55
