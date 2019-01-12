@@ -47,35 +47,35 @@ loader:
     xorl %ebx, %ebx
     movl $0x534d4150, %edx
     mov $ARDS_BUF, %di
-e820_mem_get_loop:
+.e820_mem_get_loop:
     movl $0xe820, %eax
     movl $0x14, %ecx
     int $0x15
-    jc e820_failed                /* jmp if CF=1 */
+    jc .e820_failed                /* jmp if CF=1 */
     addw %cx, %di
     incw ARDS_NUM
     cmpl $0x0, %ebx
-    jnz e820_mem_get_loop
+    jnz .e820_mem_get_loop
 
     movw ARDS_NUM, %cx
     movl $ARDS_BUF, %ebx
     xorl %edx, %edx
 
-find_max_mem_area:
+.find_max_mem_area:
     movl (%ebx), %eax
     add 8(%ebx), %eax
     addl $0x14, %ebx
     cmpl %eax, %edx
-    jge next_ards
+    jge .next_ards
     movl %eax, %edx
-next_ards:
-    loop find_max_mem_area
-    jmp mem_get_ok
+.next_ards:
+    loop .find_max_mem_area
+    jmp .mem_get_ok
 
-e820_failed:
+.e820_failed:
     cli                              /* disable interrupts */
     hlt
-mem_get_ok:
+.mem_get_ok:
     movl %edx, TOTAL_MEM_BYTES
 
 /* INT 0x10 -- print out a string */
