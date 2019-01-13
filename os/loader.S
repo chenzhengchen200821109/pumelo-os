@@ -38,6 +38,10 @@
 .equ PAGE_DIR_TABLE_ADDR, 0x100000        /* 1MB = 0xfffff */
 .equ KERNEL_START_VA, 0xc0000000
 
+.equ KERNEL_BASE_ADDR, 0x70000
+.equ PTNULL, 0x0
+.equ KERNEL_ENTRY_POINT, 0xc0001500
+
 .section .text
 .global loader
 .code16
@@ -143,6 +147,14 @@ p_mode_start:
     movb $'V', %gs:160
     movb $0xa4, %gs:161
 
+    jmp $SELECTOR_CODE, $enter_kernel
+
+enter_kernel:
+
+    call kernel_init
+    movl $0xc009f000, %esp
+    jmp KERNEL_ENTRY_POINT
+
 spin:
     jmp spin
 
@@ -191,6 +203,38 @@ setup_page:
     incl %esi
     addl 0x1000, %eax
     loop .create_kernel_pde
+    ret
+
+.type kernel_init, @function
+kernel_init:
+    xorl %eax, %eax
+    xorl %ebx, %ebx
+    xorl %ecx, %ecx
+    xorl %edx, %edx
+
+    //movl (KERNEL_BASE_ADDR + 24), %eax   /* e_entry */
+    movw (KERNEL_BASE_ADDR + 42), %dx    /* e_phentsize */
+    movl (KERNEL_BASE_ADDR + 28), %ebx   /* e_phoff */
+    addl $KERNEL_BASE_ADDR, %ebx         /* program header table */
+    movw (KERNEL_BASE_ADDR + 44), %cx   /* e_phnum */
+    subw $0x1, %cx
+
+.each_segment:
+    cmpl $PTNULL, (%ebx)
+    je .PT_NULL
+    pushl 16(%ebx)                       /* p_filesz - cnt */
+    //subl 8(%ebx), %eax
+    //addl 4(%ebx), %eax                   /* p_offset */
+    //addl $KERNEL_BASE_ADDR, %eax         /* 0x70000 + 0x500 - src */
+    movl $KERNEL_BASE_ADDR, %eax
+    pushl %eax
+    pushl 8(%ebx)                        /* p_vaddr - dst */ 
+
+    call mem_cpy
+    addl $12, %esp
+.PT_NULL:
+    addl %edx, %ebx
+    loop .each_segment
     ret
 
 .section .data
