@@ -85,10 +85,19 @@ mem_get_ok:
 /* INT 0x10 -- print out a string */
     movw $LOADER_STACK_TOP, %sp
     movw $loadermesg, %bp
-    movw $0x11, %cx
+    movw $0x14, %cx
     movw $0x1301, %ax
-    movw $0x001f, %bx
-    movw $0x1800, %dx
+    movw $0x02, %bx
+    movw $0x100, %dx
+    int $0x10
+
+/* 
+ * set new cursor position, string "kernel" will be 
+ * printed out at this position 
+ */
+    movb $0x2, %ah
+    movb $0x0, %bh
+    movw $0x0400, %dx
     int $0x10
 
 /* enable A20 gate */
@@ -119,7 +128,17 @@ p_mode_start:
     movw %ax, %gs
 
     /* manipulate graphic memory directly */
-    movb $'P', %gs:160
+    movl $0x1a, %ecx
+    movl $0xb8000, %edi
+    movl $320, %ebx
+    movl $0x0, %esi
+display0:
+    movb promesg(, %esi, 0x1), %al
+    movb $0x2, %ah
+    movw %ax, (%edi, %ebx, 0x1)
+    addl $0x2, %ebx
+    addl $0x1, %esi
+    loop display0
 
     /* */
     call setup_page
@@ -144,8 +163,18 @@ p_mode_start:
 
     lgdt GDT_DESC
 
-    movb $'V', %gs:160
-    movb $0xa4, %gs:161
+    /* manipulate graphic memory directly */
+    movl $0x1b, %ecx
+    movl $0xc00b8000, %edi
+    movl $480, %ebx
+    movl $0x0, %esi
+display1:
+    movb virmesg(, %esi, 0x1), %al
+    movb $0x2, %ah
+    movw %ax, (%edi, %ebx, 0x1)
+    addl $0x2, %ebx
+    addl $0x1, %esi
+    loop display1
 
     jmp $SELECTOR_CODE, $enter_kernel
 
@@ -272,5 +301,9 @@ ARDS_BUF:
 ARDS_NUM:
     .word 0
 loadermesg:
-    .ascii "2 Loader in real."
+    .ascii "Loader is booting..."
+promesg:
+    .ascii "Entering protected mode..."
+virmesg:
+    .ascii "Enable virtual page mode..."
 

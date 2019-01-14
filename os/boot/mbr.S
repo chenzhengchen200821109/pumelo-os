@@ -27,16 +27,22 @@ start:
     int $0x10
 
     # get cursor current position
-    movb $0x3, %ah
+    #movb $0x3, %ah
+    #movb $0x0, %bh
+    #int $0x10
+
+    # set new cursor position
+    movb $0x2, %ah
     movb $0x0, %bh
+    movw $0x0, %dx
     int $0x10
 
     # print out a string
     movw $message, %ax
     movw %ax, %bp
-    movw $0x5, %cx
+    movw $0x11, %cx
     movw $0x1301, %ax
-    movw $0x2, %bx
+    movw $0x2, %bx    /* black background and green characters */
     int $0x10
 
     movl $LOADER_START_SECTOR, %eax
@@ -112,7 +118,7 @@ go_on_read:
     ret
 
 message:
-    .ascii "1 MBR"
+    .ascii "MBR is booting..."
     .equ KERNEL_START_SECTOR, 0xa
     .equ KERNEL_BASE_ADDR, 0x70000
     .org 510, 0
