@@ -36,12 +36,16 @@ $(LOADER): $(BOOTDIR)loader.S $(BOOTDIR)helper.S
 $(HDIMG):
 	bximage -hd=60 -mode=create -imgmode=flat -q $(HDIMG)
 
-$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c
+$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)intr_handler.S $(KERNELDIR)intr.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o $(KERNEL).o $(KERNELDIR)main.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o console.o $(KERNELDIR)console.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o string.o $(KERNELDIR)string.c
-	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o
+	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o stdio.o $(KERNELDIR)stdio.c
+	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o printfmt.o $(KERNELDIR)printfmt.c
+	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o intr.o $(KERNELDIR)intr.c
+	$(AS) $(INCLUDE) -o intr_handler.o $(KERNELDIR)intr_handler.S
+	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o intr.o intr_handler.o
 	$(DD) if=$(KERNEL) of=$(HDIMG) bs=512 count=127 seek=10 conv=notrunc
 
 clean:
-	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o
+	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o intr.o intr_handler.o

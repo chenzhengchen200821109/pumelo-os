@@ -248,22 +248,20 @@ kernel_init:
     movw (KERNEL_BASE_ADDR + 44), %cx   /* e_phnum */
     subw $0x1, %cx
 
-.each_segment:
+each_segment:
     cmpl $PTNULL, (%ebx)
     je .PT_NULL
     pushl 16(%ebx)                       /* p_filesz - cnt */
-    //subl 8(%ebx), %eax
-    //addl 4(%ebx), %eax                   /* p_offset */
-    //addl $KERNEL_BASE_ADDR, %eax         /* 0x70000 + 0x500 - src */
-    movl $KERNEL_BASE_ADDR, %eax
+    movl 4(%ebx), %eax                   /* p_offset */
+    addl $KERNEL_BASE_ADDR, %eax         /* 0x70000 + 0x500 - src */
     pushl %eax
     pushl 8(%ebx)                        /* p_vaddr - dst */ 
 
     call mem_cpy
     addl $12, %esp
-.PT_NULL:
     addl %edx, %ebx
-    loop .each_segment
+    loop each_segment
+.PT_NULL:
     ret
 
 .section .data
