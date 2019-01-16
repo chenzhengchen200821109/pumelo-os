@@ -1,6 +1,8 @@
-#ifndef _INTR_H
-#define _INTR_H
+#ifndef _INTR_H__
+#define _INTR_H__
 
-void idt_init();
+void intr_enable(void);
+void intr_disable(void);
 
-#endif
+#endif /* _INTR_H__ */
+

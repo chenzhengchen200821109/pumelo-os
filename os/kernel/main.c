@@ -1,12 +1,18 @@
 #include "console.h"
 #include "intr.h"
+#include "picirq.h"
+#include "trap.h"
+#include "clock.h"
 #include "stdio.h"
 
 int main()
 {
     // console initialization
     cons_init();
+    pic_init();
     idt_init();
+    clock_init();
+    intr_enable();
 
     //while (1);
     //cons_putc('k');
