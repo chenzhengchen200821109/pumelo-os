@@ -265,6 +265,9 @@ each_segment:
     ret
 
 .section .data
+.global TOTAL_MEM_BYTES
+TOTAL_MEM_BYTES:
+    .long 0
 GDT_BASE:
     .word 0, 0
     .byte 0, 0, 0, 0
@@ -289,9 +292,9 @@ GDT_END:
 GDT_DESC:
     .word GDT_LIMIT
     .long GDT_BASE
-.global TOTAL_MEM_BYTES
-TOTAL_MEM_BYTES:
-    .long 0
+//.global TOTAL_MEM_BYTES
+//TOTAL_MEM_BYTES:
+//    .long 0
 ARDS_BUF:
     .rept 100
     .long 0
