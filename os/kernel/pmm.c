@@ -3,6 +3,8 @@
 #include "mmu.h"
 #include "memlayout.h"
 #include "pmm.h"
+#include "assert.h"
+#include "bitmap.h"
 
 /* *
  * Task State Segment:
@@ -98,4 +100,5 @@ void
 pmm_init(void) {
     gdt_init();
 }
+
 

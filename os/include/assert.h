@@ -3,8 +3,8 @@
 
 #include "defs.h"
 
-void __warn(const char *file, int line, const char *fmt, ...);
-void __panic(const char *file, int line, const char *fmt, ...) __attribute__((noreturn));
+void __warn(const char *file, int line, const char* func, const char *fmt, ...);
+void __panic(const char *file, int line, const char* func, const char *fmt, ...) __attribute__((noreturn));
 
 #define warn(...)                                       \
     __warn(__FILE__, __LINE__, __func__,  __VA_ARGS__)
