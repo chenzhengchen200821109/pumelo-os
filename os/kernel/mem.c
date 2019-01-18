@@ -1,5 +1,7 @@
 #include "mem.h"
 #include "stdio.h"
+#include "assert.h"
+#include "string.h"
 
 #define PAGE_SIZE 4096
 
@@ -62,28 +64,119 @@ static void mem_pool_init(uint32_t all_mem)
 
 }
 
-void* alloc_pages(size_t n)
+static void* alloc_physical_pages(struct pool* m_pool, uint32_t pg_cnt)
 {
-    int bit_idx;
-    if ((bit_idx = bitmap_scan(&(kernel_pool.pool_bitmap), n)) != -1)
-        return (void *)(kernel_pool.paddr_start + bit_idx * PAGE_SIZE);
+    int pddr_start = 0;
+    int bit_idx_start;
+    uint32_t cnt = 0;
+    uint32_t paddr;
+    if ((bit_idx_start = bitmap_scan(&m_pool->pool_bitmap, pg_cnt)) != -1) {
+        paddr = m_pool->paddr_start + bit_idx_start * PAGE_SIZE; 
+        while (cnt < pg_cnt) {
+            cnt++;
+        }
+        return (void *)paddr;
+    } else 
+        return NULL;
 }
 
-void free_pages(void* base, size_t n)
+static void free_physical_pages(struct pool* m_pool, void* paddr, uint32_t pg_cnt)
 {
-    int bit_idx;
+    int bit_idx_start;
+    size_t i;
 
-    bit_idx = (int)(base - kernel_pool.paddr_start) / 4096;
-    for (size_t i = 0; i < n; i++) {
-        bitmap_set(&(kernel_pool.pool_bitmap), bit_idx, 0);
-        bit_idx++;
+    bit_idx_start = (int)(paddr - m_pool->paddr_start) / PAGE_SIZE;
+    for (i = 0; i < pg_cnt; i++) {
+        bitmap_set(&(kernel_pool.pool_bitmap), bit_idx_start, 0);
+        bit_idx_start++;
     }
+}
+
+static void* get_virtual_pages(enum pool_flags pf, uint32_t pg_cnt)
+{
+    int vaddr_start = 0;
+    int bit_idx_start = -1;
+    uint32_t cnt = 0;
+
+    if (pf == PF_KERNEL) {
+        bit_idx_start = bitmap_scan(&kernel_vaddr.vaddr_bitmap, pg_cnt);
+        if (bit_idx_start == - 1)
+            return NULL;
+        while (cnt < pg_cnt) {
+            bitmap_set(&kernel_vaddr.vaddr_bitmap, bit_idx_start + cnt, 1);
+            cnt++;
+        }
+        vaddr_start = kernel_vaddr.vaddr_start + bit_idx_start * PAGE_SIZE;
+    } else {
+        // for user space
+    }
+    return (void *)vaddr_start;
+}
+
+static uint32_t* pte_addr(uint32_t vaddr)
+{
+    uint32_t* pte = (uint32_t *)(0xffc00000 + ((vaddr & 0xffc00000) >> 10) + PTE_IDX(vaddr) * 4);
+    return pte;
+}
+
+static uint32_t* pde_addr(uint32_t vaddr)
+{
+    uint32_t* pde = (uint32_t *)((0xfffff000) + PDE_IDX(vaddr) * 4);
+    return pde;
+}
+
+static void insert_page_table(void* vaddr, void* paddr)
+{
+    uint32_t _vaddr = (uint32_t)vaddr;
+    uint32_t _paddr = (uint32_t)paddr;
+    uint32_t* pde = pde_addr(_vaddr);
+    uint32_t* pte = pte_addr(_vaddr);
+
+    if (*pde & 0x1) {
+        if (!(*pte & 0x1)) {
+            *pte = (_paddr | PG_US_U | PG_RW_W | PG_P_1);
+        } else {
+            panic("pte existed");
+        }
+    } else {
+        uint32_t pde_paddr = (uint32_t)alloc_physical_pages(&kernel_pool, 1);
+        *pde = (pde_paddr | PG_US_U | PG_RW_W | PG_P_1);
+        memset((void *)((int)pte & 0xfffff000), 0, PAGE_SIZE);
+        *pte = (_paddr | PG_US_U | PG_RW_W | PG_P_1);
+    }
+}
+
+static void* malloc_pages(enum pool_flags pf, uint32_t pg_cnt)
+{
+    void* vaddr_start = get_virtual_pages(pf, pg_cnt);
+    if (!vaddr_start)
+        return NULL;
+
+    uint32_t vaddr = (uint32_t)vaddr_start, cnt = pg_cnt;
+    struct pool* mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
+
+    while (cnt-- > 0) {
+        void* page_paddr = alloc_physical_pages(mem_pool, 1);
+        if (page_paddr == NULL)
+            return NULL;
+        insert_page_table((void *)vaddr, page_paddr);
+        vaddr += PAGE_SIZE;
+    }
+    return vaddr_start;
+}
+
+void* kmalloc_pages(uint32_t pg_cnt)
+{
+    void* vaddr = malloc_pages(PF_KERNEL, pg_cnt);
+    if (vaddr != NULL)
+        memset(vaddr, 0, pg_cnt * PAGE_SIZE);
+    return vaddr;
 }
 
 void mem_init()
 {
     kprintf("mem_init start\n");
-    uint32_t mem_bytes_total = (*(uint32_t *)(0xb00));
+    uint32_t mem_bytes_total = (*(uint32_t *)(0xd00));
     mem_pool_init(mem_bytes_total);
     kprintf("mem_init done\n");
 }

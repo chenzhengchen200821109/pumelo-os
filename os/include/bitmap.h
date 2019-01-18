@@ -1,7 +1,8 @@
 #ifndef _BITMAP_H
 #define _BITMAP_H
 
-#include "defs.h"
+//#include "defs.h"
+#include <stdint.h>
 #define BITMAP_MASK 1
 
 struct bitmap
