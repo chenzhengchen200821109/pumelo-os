@@ -42,7 +42,7 @@ $(HDIMG):
 $(HD80IMG):
 	bximage -hd=80 -mode=create -imgmode=flat -q $(HD80IMG)
 
-$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)interrupt.c $(KERNELDIR)panic.c $(KERNELDIR)pmm.c $(KERNELDIR)mem.c $(DSDIR)bitmap.c $(KERNELDIR)kernel.S $(KERNELDIR)intr.c
+$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)interrupt.c $(KERNELDIR)panic.c $(KERNELDIR)pmm.c $(KERNELDIR)mem.c $(DSDIR)bitmap.c $(KERNELDIR)kernel.S $(KERNELDIR)intr.c $(KERNELDIR)clock.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o $(KERNEL).o $(KERNELDIR)main.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o console.o $(KERNELDIR)console.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o string.o $(KERNELDIR)string.c
@@ -51,7 +51,7 @@ $(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNE
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o intr.o $(KERNELDIR)intr.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o interrupt.o $(KERNELDIR)interrupt.c
 	#$(CC) $(INCLUDE) $(CCFLAGS) -o trap.o $(KERNELDIR)trap.c
-	#$(CC) $(INCLUDE) $(CCFLAGS) -o clock.o $(KERNELDIR)clock.c
+	$(CC) $(INCLUDE) $(CCFLAGS) -o clock.o $(KERNELDIR)clock.c
 	#$(CC) $(INCLUDE) $(CCFLAGS) -o picirq.o $(KERNELDIR)picirq.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o panic.o $(KERNELDIR)panic.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o pmm.o $(KERNELDIR)pmm.c
@@ -63,7 +63,7 @@ $(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNE
 	#$(AS) $(INCLUDE) -o trapentry.o $(KERNELDIR)trapentry.S
 	#$(AS) $(INCLUDE) -o switch.o $(KERNELDIR)switch.S
 	$(AS) $(INCLUDE) -o kernel.o $(KERNELDIR)kernel.S
-	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o interrupt.o panic.o pmm.o mem.o bitmap.o kernel.o intr.o
+	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o interrupt.o panic.o pmm.o mem.o bitmap.o kernel.o intr.o clock.o
 	$(DD) if=$(KERNEL) of=$(HDIMG) bs=512 count=127 seek=10 conv=notrunc
 
 clean:
