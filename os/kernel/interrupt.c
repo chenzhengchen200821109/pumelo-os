@@ -72,7 +72,7 @@ void idt_init()
     /* load idt */
     uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16)));
     asm volatile ("lidt %0" : : "m"(idt_operand));
-    asm volatile ("sti");
+    //asm volatile ("sti");
 
     kputs("idt_init done");
 }

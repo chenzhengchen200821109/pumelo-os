@@ -14,6 +14,7 @@ BOOTDIR = boot/
 DSDIR = ds/
 
 HDIMG = hd60M.img
+HD80IMG = hd80M.img
 
 LOADER = loader
 MBR = mbr
@@ -38,24 +39,32 @@ $(LOADER): $(BOOTDIR)loader.S $(BOOTDIR)helper.S
 $(HDIMG):
 	bximage -hd=60 -mode=create -imgmode=flat -q $(HDIMG)
 
-$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)vector.S $(KERNELDIR)intr.c $(KERNELDIR)trapentry.S $(KERNELDIR)trap.c $(KERNELDIR)clock.c $(KERNELDIR)picirq.c $(KERNELDIR)vector.S $(KERNELDIR)trapentry.S $(KERNELDIR)panic.c $(KERNELDIR)pmm.c $(KERNELDIR)mem.c $(DSDIR)bitmap.c
+$(HD80IMG):
+	bximage -hd=80 -mode=create -imgmode=flat -q $(HD80IMG)
+
+$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)interrupt.c $(KERNELDIR)panic.c $(KERNELDIR)pmm.c $(KERNELDIR)mem.c $(DSDIR)bitmap.c $(KERNELDIR)kernel.S $(KERNELDIR)intr.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o $(KERNEL).o $(KERNELDIR)main.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o console.o $(KERNELDIR)console.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o string.o $(KERNELDIR)string.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o stdio.o $(KERNELDIR)stdio.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o printfmt.o $(KERNELDIR)printfmt.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o intr.o $(KERNELDIR)intr.c
-	$(CC) $(INCLUDE) $(CCFLAGS) -o trap.o $(KERNELDIR)trap.c
-	$(CC) $(INCLUDE) $(CCFLAGS) -o clock.o $(KERNELDIR)clock.c
-	$(CC) $(INCLUDE) $(CCFLAGS) -o picirq.o $(KERNELDIR)picirq.c
+	$(CC) $(INCLUDE) $(CCFLAGS) -o interrupt.o $(KERNELDIR)interrupt.c
+	#$(CC) $(INCLUDE) $(CCFLAGS) -o trap.o $(KERNELDIR)trap.c
+	#$(CC) $(INCLUDE) $(CCFLAGS) -o clock.o $(KERNELDIR)clock.c
+	#$(CC) $(INCLUDE) $(CCFLAGS) -o picirq.o $(KERNELDIR)picirq.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o panic.o $(KERNELDIR)panic.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o pmm.o $(KERNELDIR)pmm.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o mem.o $(KERNELDIR)mem.c
 	$(CC) $(INCLUDE) $(CCFLAGS) -o bitmap.o $(DSDIR)bitmap.c
-	$(AS) $(INCLUDE) -o vector.o $(KERNELDIR)vector.S
-	$(AS) $(INCLUDE) -o trapentry.o $(KERNELDIR)trapentry.S
-	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o intr.o trap.o clock.o picirq.o panic.o pmm.o mem.o bitmap.o vector.o trapentry.o
+	#$(CC) $(INCLUDE) $(CCFLAGS) -o list.o $(DSDIR)list.c
+	#$(CC) $(INCLUDE) $(CCFLAGS) -o thread.o $(KERNELDIR)thread.c
+	#$(AS) $(INCLUDE) -o vectors.o $(KERNELDIR)vectors.S
+	#$(AS) $(INCLUDE) -o trapentry.o $(KERNELDIR)trapentry.S
+	#$(AS) $(INCLUDE) -o switch.o $(KERNELDIR)switch.S
+	$(AS) $(INCLUDE) -o kernel.o $(KERNELDIR)kernel.S
+	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o interrupt.o panic.o pmm.o mem.o bitmap.o kernel.o intr.o
 	$(DD) if=$(KERNEL) of=$(HDIMG) bs=512 count=127 seek=10 conv=notrunc
 
 clean:
-	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o intr.o trap.o clock.o picirq.o panic.o pmm.o mem.o bitmap.o vector.o trapentry.o
+	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o intr.o trap.o clock.o picirq.o panic.o pmm.o mem.o bitmap.o list.o thread.o vectors.o trapentry.o switch.o kernel.o

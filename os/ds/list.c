@@ -1,126 +1,83 @@
 #include "list.h"
+#include "intr.h"
 
-/* *
- * Simple doubly linked list implementation.
- *
- * Some of the internal functions ("__xxx") are useful when manipulating
- * whole lists rather than single entries, as sometimes we already know
- * the next/prev entries and we can generate better code by using them
- * directly rather than using the generic single-entry routines.
- * */
-
-static inline void __list_add(list_entry_t *elm, list_entry_t *prev, list_entry_t *next) __attribute__((always_inline));
-static inline void __list_del(list_entry_t *prev, list_entry_t *next) __attribute__((always_inline));
-
-/* *
- * list_init - initialize a new entry
- * @elm:        new entry to be initialized
- * */
-void list_init(list_entry_t *elm) {
-    elm->prev = elm->next = elm;
+void list_init(struct list* plist)
+{
+    plist->header.prev = NULL;
+    plist->header.next = &plist->tailer;
+    plist->tailer.prev = &plist->header;
+    plist->tailer.next = NULL;
 }
 
-/* *
- * list_add - add a new entry
- * @listelm:    list head to add after
- * @elm:        new entry to be added
- *
- * Insert the new element @elm *after* the element @listelm which
- * is already in the list.
- * */
-void list_add(list_entry_t *listelm, list_entry_t *elm) {
-    list_add_after(listelm, elm);
+void list_insert_before(struct list_entry* before, struct list_entry* elem)
+{
+    enum intr_status old_status = intr_disable();
+    before->prev->next = elem;
+    elem->prev = before->prev;
+    elem->next = before;
+    before->prev = elem;
+    set_intr_status(old_status);
 }
 
-/* *
- * list_add_before - add a new entry
- * @listelm:    list head to add before
- * @elm:        new entry to be added
- *
- * Insert the new element @elm *before* the element @listelm which
- * is already in the list.
- * */
-void list_add_before(list_entry_t *listelm, list_entry_t *elm) {
-    __list_add(elm, listelm->prev, listelm);
+void list_push(struct list* plist, struct list_entry* elem)
+{
+    list_insert_before(plist->header.next, elem);
 }
 
-/* *
- * list_add_after - add a new entry
- * @listelm:    list head to add after
- * @elm:        new entry to be added
- *
- * Insert the new element @elm *after* the element @listelm which
- * is already in the list.
- * */
-void list_add_after(list_entry_t *listelm, list_entry_t *elm) {
-    __list_add(elm, listelm, listelm->next);
+void list_append(struct list* plist, struct list_entry* elem)
+{
+    list_insert_before(&plist->tailer, elem);
 }
 
-/* *
- * list_del - deletes entry from list
- * @listelm:    the element to delete from the list
- *
- * Note: list_empty() on @listelm does not return true after this, the entry is
- * in an undefined state.
- * */
-void list_del(list_entry_t *listelm) {
-    __list_del(listelm->prev, listelm->next);
+void list_remove(struct list_entry* elem)
+{
+    enum intr_status old_status = intr_disable();
+    elem->prev->next = elem->next;
+    elem->next->prev = elem->prev;
+    set_intr_status(old_status);
 }
 
-/* *
- * list_del_init - deletes entry from list and reinitialize it.
- * @listelm:    the element to delete from the list.
- *
- * Note: list_empty() on @listelm returns true after this.
- * */
-void list_del_init(list_entry_t *listelm) {
-    list_del(listelm);
-    list_init(listelm);
+struct list_entry* list_pop(struct list* plist)
+{
+    struct list_entry* elem = plist->header.next;
+    list_remove(elem);
+    return elem;
 }
 
-/* *
- * list_empty - tests whether a list is empty
- * @list:       the list to test.
- * */
-int list_empty(list_entry_t *list) {
-    return list->next == list;
+int list_find(struct list* plist, struct list_entry* elem)
+{
+    struct list_entry* first = plist->header.next;
+    while (first != &plist->tailer) {
+        if (first == elem)
+            return 1;  // true
+        first = first->next;
+    }
+    return 0;  // false
 }
 
-/* *
- * list_next - get the next entry
- * @listelm:    the list head
- **/
-list_entry_t *list_next(list_entry_t *listelm) {
-    return listelm->next;
+uint32_t list_len(struct list* plist)
+{
+    struct list_entry* first = plist->header.next;
+    uint32_t counter = 0;
+    while (first != &plist->tailer) {
+        counter++;
+        first = first->next;
+    }
+    return counter;
 }
 
-/* *
- * list_prev - get the previous entry
- * @listelm:    the list head
- **/
-list_entry_t *list_prev(list_entry_t *listelm) {
-    return listelm->prev;
+int list_empty(struct list* plist)
+{
+    return (plist->header.next == &plist->tailer ? 1 : 0);
 }
 
-/* *
- * Insert a new entry between two known consecutive entries.
- *
- * This is only for internal list manipulation where we know
- * the prev/next entries already!
- * */
-inline void __list_add(list_entry_t *elm, list_entry_t *prev, list_entry_t *next) {
-    prev->next = next->prev = elm;
-    elm->next = next;
-    elm->prev = prev;
-}
+void list_traversal(struct list* plist, function func, int arg)
+{
+    struct list_entry* first = plist->header.next;
+    if (list_empty(plist))
+        return;
 
-/* *
- * Delete a list entry by making the prev/next entries point to each other.
- *
- * This is only for internal list manipulation where we know
- * the prev/next entries already!
- * */
-inline void __list_del(list_entry_t *prev, list_entry_t *next) {
-    prev->next = next;
-    next->prev = prev;
+    while (first != &plist->tailer) {
+        func(first, arg);
+    }
 }
