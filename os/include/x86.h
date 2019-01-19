@@ -80,6 +80,16 @@ cli(void) {
     asm volatile ("cli");
 }
 
+static inline uint32_t
+xchg(volatile uint32_t* addr, uint32_t newval)
+{
+    uint32_t result;
+    asm volatile ("lock; xchgl %0, %1" :
+            "+m" (*addr), "=a"(result) :
+            "l" (newval) : "cc");
+    return result;
+}
+
 // load task register
 static inline void
 ltr(uint16_t sel) {

@@ -12,21 +12,31 @@
  * directly rather than using the generic single-entry routines.
  * */
 
+
 struct list_entry {
     struct list_entry *prev, *next;
 };
 
-typedef struct list_entry list_entry_t;
+struct list
+{
+    struct list_entry header;
+    struct list_entry tailer;
+};
 
-void list_init(list_entry_t *elm);
-void list_add(list_entry_t *listelm, list_entry_t *elm);
-void list_add_before(list_entry_t *listelm, list_entry_t *elm);
-void list_add_after(list_entry_t *listelm, list_entry_t *elm);
-void list_del(list_entry_t *listelm);
-void list_del_init(list_entry_t *listelm);
-int list_empty(list_entry_t *list);
-list_entry_t *list_next(list_entry_t *listelm);
-list_entry_t *list_prev(list_entry_t *listelm);
+typedef struct list_entry list_entry_t;
+typedef void (*function)(list_entry_t* elem, int arg);
+
+void list_init(struct list* plist);
+void list_insert_before(list_entry_t* before, list_entry_t* elem);
+void list_push(struct list* plist, list_entry_t* elem);
+//void list_iterate(struct list* plist);
+void list_append(struct list* plist, list_entry_t* elem);
+void list_remove(struct list_entry* elem);
+list_entry_t* list_pop(struct list* plist);
+int list_empty(struct list* plist);
+uint32_t list_len(struct list* plist);
+void list_traversal(struct list* plist, function func, int arg);
+int list_find(struct list* plist, list_entry_t* elem);
 
 #endif /* _LIST_H__ */
 

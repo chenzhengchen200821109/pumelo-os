@@ -31,15 +31,11 @@ static void set_timer_frequency(uint8_t port, uint8_t no,  uint8_t rwl, uint8_t 
  * and then enable IRQ_TIMER.
  * */
 void
-clock_init(void) {
+clock_init(void) 
+{
     // set 8253 timer-chip
     set_timer_frequency(COUNTER0_PORT, COUNTER0_NO, READ_WRITE_LOCK, COUNTER0_MODE, COUNTER0_VALUE); 
-
     // initialize time counter 'ticks' to zero
     ticks = 0;
-
-    kprintf("setup timer interrupts\n");
-    // enable clock interrupt
-    pic_enable(IRQ_TIMER);
 }
 

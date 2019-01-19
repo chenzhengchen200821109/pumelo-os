@@ -34,6 +34,13 @@ static void make_intr_descriptor(struct intr_descriptor* pdesc, uint8_t attr, in
     pdesc->offset_high = ((uint32_t)func & 0xffff0000) >> 16;
 }
 
+void general_intr_handler(uint8_t vecno)
+{
+    if (vecno == 0x27 || vecno == 0x2f)
+        return;
+    kprintf("int vector no : %d\n", vecno);
+}
+
 static void idt_desc_init()
 {
     int i;
@@ -57,6 +64,7 @@ static void pic_init()
     outb(PIC_S_DATA, 0x02);
     outb(PIC_S_DATA, 0x01);
 
+    // only enable clock interrupt now
     outb(PIC_M_DATA, 0xfe);
     outb(PIC_S_DATA, 0xff);
 
@@ -72,7 +80,6 @@ void idt_init()
     /* load idt */
     uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16)));
     asm volatile ("lidt %0" : : "m"(idt_operand));
-    //asm volatile ("sti");
 
     kputs("idt_init done");
 }
