@@ -63,4 +63,4 @@ $(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNE
 	$(DD) if=$(KERNEL) of=$(HDIMG) bs=512 count=127 seek=10 conv=notrunc
 
 clean:
-	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o intr.o clock.o panic.o pmm.o mem.o bitmap.o list.o thread.o interrupt.o switch.o kernel.o
+	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o console.o intr.o clock.o panic.o pmm.o mem.o bitmap.o list.o thread.o interrupt.o switch.o kernel.o stdio.o printfmt.o string.o 
