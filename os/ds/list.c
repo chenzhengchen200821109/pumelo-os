@@ -1,5 +1,8 @@
 #include "list.h"
+#include <stdio.h>
 #include "intr.h"
+#include "thread.h"
+#include "defs.h"
 
 void list_init(struct list* plist)
 {
@@ -44,13 +47,14 @@ struct list_entry* list_pop(struct list* plist)
     return elem;
 }
 
-int list_find(struct list* plist, struct list_entry* elem)
+int list_find(struct list* plist, struct list_entry* target)
 {
-    struct list_entry* first = plist->header.next;
-    while (first != &plist->tailer) {
-        if (first == elem)
+    struct list_entry* elem = (plist->header).next;
+    while (elem != &plist->tailer) {
+        kprintf("elem = 0x%x, target = 0x%x\n", elem, target);
+        if (elem == target)
             return 1;  // true
-        first = first->next;
+        elem = elem->next;
     }
     return 0;  // false
 }
@@ -79,5 +83,11 @@ void list_traversal(struct list* plist, function func, int arg)
 
     while (first != &plist->tailer) {
         func(first, arg);
+        first = first->next;
     }
+}
+
+void list_print(struct list_entry* elem, int value)
+{
+    kprintf("addr 0x%x\n", to_struct(elem, struct thread_struct, general_tag));
 }

@@ -37,6 +37,7 @@ int list_empty(struct list* plist);
 uint32_t list_len(struct list* plist);
 void list_traversal(struct list* plist, function func, int arg);
 int list_find(struct list* plist, list_entry_t* elem);
+void list_print(struct list* elem, int value);
 
 #endif /* _LIST_H__ */
 

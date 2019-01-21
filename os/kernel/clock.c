@@ -1,7 +1,7 @@
 #include "x86.h"
-#include "trap.h"
 #include "stdio.h"
-#include "picirq.h"
+#include "thread.h"
+#include "assert.h"
 
 /* *
  * Frequency of all three count-down timers; (TIMER_FREQ/freq)
@@ -19,6 +19,18 @@
 
 volatile size_t ticks;
 
+void timer_intr_handler() 
+{
+    struct thread_struct* cur_thread = running_thread();
+    assert(cur_thread->stack_magic == 0x19870916);
+    cur_thread->elapsed_ticks++;
+    ticks++;
+    if (cur_thread->ticks == 0)
+        schedule();
+    else
+        cur_thread->ticks--;
+}
+
 static void set_timer_frequency(uint8_t port, uint8_t no,  uint8_t rwl, uint8_t mode, uint16_t value)
 {
     outb(COUNTER0_CONTROL, (uint8_t)(no << 6 | rwl << 4 | mode << 1));
@@ -34,8 +46,11 @@ void
 clock_init(void) 
 {
     // set 8253 timer-chip
-    set_timer_frequency(COUNTER0_PORT, COUNTER0_NO, READ_WRITE_LOCK, COUNTER0_MODE, COUNTER0_VALUE); 
+    // In order to debug, do not set frequency too large !!!
+    //set_timer_frequency(COUNTER0_PORT, COUNTER0_NO, READ_WRITE_LOCK, COUNTER0_MODE, COUNTER0_VALUE); 
     // initialize time counter 'ticks' to zero
     ticks = 0;
+    //register_handler(0x20, (intr_handler)timer_intr_handler);
+    kprintf("clock_init done\n");
 }
 

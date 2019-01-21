@@ -31,7 +31,7 @@ static void Thread_init(struct thread_struct* pthread, const char* name, int pri
     else
         pthread->status = TASK_READY;
 
-    pthread->self_kstack = (uint32_t *)((uint32_t)pthread + PAGE_SIZE);
+    pthread->self_kstack = (char *)((char *)pthread + PAGE_SIZE);
     pthread->priority = prio;
     pthread->ticks = prio;
     pthread->elapsed_ticks = 0;
@@ -41,19 +41,20 @@ static void Thread_init(struct thread_struct* pthread, const char* name, int pri
 
 static void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_arg)
 {
-    char* sp;
-    pthread->self_kstack -= sizeof(struct trapframe);
-    pthread->self_kstack -= sizeof(struct thread_parameter);
-    struct thread_parameter* param = (struct thread_parameter *)pthread->self_kstack;
+    char* sp = pthread->self_kstack;
+
+    sp = sp - sizeof(struct trapframe);
+
+    sp = (char *)((unsigned long)sp & ~16L);
+    sp = sp - sizeof(struct thread_parameter);
+    struct thread_parameter* param = (struct thread_parameter *)sp;
     param->function = func;
     param->arg = func_arg;
-    pthread->self_kstack -= sizeof(void *);  // for unused return address
-    sp = (char *)pthread->self_kstack;
-    pthread->self_kstack -= sizeof(struct thread_context);
-    pthread->context = (struct thread_context *)pthread->self_kstack;
-    //struct thread_context* kthread_stack = (struct thread_context *)pthread->self_kstack;
-    pthread->context->eip = (uint32_t)kernel_thread_entry;
-    pthread->context->esp = (uint32_t)sp;
+    sp = sp - sizeof(void *);
+    pthread->self_kstack = sp;
+    kprintf("sp address is 0x%x\n", pthread->self_kstack);
+    pthread->context.eip = (void *)kernel_thread_entry;
+    pthread->context.esp = (void *)sp;
 }
 
 void schedule()
@@ -61,21 +62,24 @@ void schedule()
     assert(get_intr_status() == INTR_OFF);
 
     struct thread_struct* cur = running_thread();
+
     if (cur->status == TASK_RUNNING) {
         assert(!list_find(&thread_ready_list, &cur->general_tag));
+        // already in thread_ready_list
         list_append(&thread_ready_list, &cur->general_tag);
         cur->ticks = cur->priority;
         cur->status = TASK_READY;
     } else {
-    
+        // 
     }
 
     assert(!list_empty(&thread_ready_list));
     thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
     struct thread_struct* next = to_struct(thread_tag, struct thread_struct, general_tag);
+    kprintf("next is 0x%x\n", next);
     next->status = TASK_RUNNING;
-    switch_to(cur->context, next->context);
+    switch_to(&cur->context, &next->context);
 }
 
 struct thread_struct* running_thread()
@@ -87,7 +91,8 @@ struct thread_struct* running_thread()
 
 struct thread_struct* thread_start(char* name, int prio, thread_func* func, void* func_arg)
 {
-    struct thread_struct* thread = (struct thread_struct *)kmalloc_pages(1); // ????
+    struct thread_struct* thread = (struct thread_struct *)get_kernel_pages(1); // ????
+    kprintf("pthread = 0x%x\n", thread);
 
     Thread_init(thread, name, prio);
     Thread_create(thread, func, func_arg);
@@ -97,6 +102,9 @@ struct thread_struct* thread_start(char* name, int prio, thread_func* func, void
     
     assert(!list_find(&thread_list_all, &thread->all_list_tag));
     list_append(&thread_list_all, &thread->all_list_tag);
+
+    // debug
+    list_traversal(&thread_ready_list, (function)list_print, 0);
 
     return thread;
 }
@@ -132,6 +140,9 @@ static void Make_Main_Thread()
 
     assert(!list_find(&thread_list_all, &main_thread->all_list_tag));
     list_append(&thread_list_all, &main_thread->all_list_tag);
+
+    //assert(!list_find(&thread_ready_list, &main_thread->general_tag));
+    //list_append(&thread_ready_list, &main_thread->general_tag);
 }
 
 void kthread_init()

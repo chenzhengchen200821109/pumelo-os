@@ -2,7 +2,6 @@
 #define _THREAD_H
 
 #include "defs.h"
-#include "trap.h"
 #include "list.h"
 
 typedef void thread_func(void *);
@@ -17,6 +16,29 @@ enum task_status
     TASK_DIED
 };
 
+struct trapframe
+{
+    uint32_t vecno;
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp_dummy;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+    uint32_t gs;
+    uint32_t fs;
+    uint32_t es;
+    uint32_t ds;
+    uint32_t err_code;
+    void (*eip)(void);
+    uint32_t cs;
+    uint32_t eflags;
+    void* esp;
+    uint32_t ss;
+};
+
 struct thread_parameter
 {
     const void* function;
@@ -25,14 +47,22 @@ struct thread_parameter
 
 struct thread_context
 {
-    uint32_t eip;
-    uint32_t esp;
-    uint32_t ebx;
-    uint32_t ecx;
-    uint32_t edx;
-    uint32_t esi;
-    uint32_t edi;
-    uint32_t ebp;
+    //uint32_t eip;
+    void* eip;
+    //uint32_t esp;
+    void* esp;
+    //uint32_t ebx;
+    void* ebx;
+    //uint32_t ecx;
+    void* ecx;
+    //uint32_t edx;
+    void* edx;
+    //uint32_t esi;
+    void* esi;
+    //uint32_t edi;
+    void* edi;
+    //uint32_t ebp;
+    void* ebp;
 
     //uint32_t ebp;
     //uint32_t ebx;
@@ -45,9 +75,9 @@ struct thread_context
 
 struct thread_struct
 {
-    uint32_t* self_kstack;
+    char* self_kstack;
     enum task_status status;
-    struct thread_context* context;
+    struct thread_context context;
     thread_func* func;
     void* func_arg;
     struct trapframe* tf;

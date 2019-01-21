@@ -1,402 +1,646 @@
 # handler
 
-.extern kputs
+//.extern kputs
+.extern general_intr_handler
 
-.section .data
-intr_str:
-    .ascii "interrupt occur"
-time_intr_str:
-    .ascii "time interrupt occur"
+//.section .data
+//intr_str:
+//    .ascii "interrupt occur"
+//time_intr_str:
+//    .ascii "time interrupt occur"
 
 .section .text
 .globl vector0
 vector0:
-  pushl $0 # tf_err field of struct trapframe
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $0 # tf_trapno field of struct trapframe
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0 # tf_err field of struct trapframe
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    pushl $0 # tf_trapno field of struct trapframe
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    jmp intr_exit
+    //addl $4, %esp
+    //iret
 .globl vector1
 vector1:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $1
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $1
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector2
 vector2:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $2
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $2
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector3
 vector3:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $3
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $3
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector4
 vector4:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $4
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $4
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector5
 vector5:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $5
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $5
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector6
 vector6:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $6
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $6
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector7
 vector7:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $7
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $7
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector8
 vector8:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $8
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $8
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector9
 vector9:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $9
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $9
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector10
 vector10:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $10
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $10
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector11
 vector11:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $11
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $11
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector12
 vector12:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $12
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $12
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector13
 vector13:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $13
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $13
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector14
 vector14:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $14
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $14
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector15
 vector15:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $15
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $15
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector16
 vector16:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $16
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $16
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector17
 vector17:
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $17
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $17
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector18
 vector18:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $18
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $18
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector19
 vector19:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $19
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $19
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector20
 vector20:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $20
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $20
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector21
 vector21:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $21
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $21
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector22
 vector22:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $22
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $22
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector23
 vector23:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $23
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $23
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector24
 vector24:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $24
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $24
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector25
 vector25:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $25
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $25
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector26
 vector26:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $26
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $26
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector27
 vector27:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $27
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $27
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector28
 vector28:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $28
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $28
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector29
 vector29:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $29
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $29
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector30
 vector30:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $30
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $30
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector31
 vector31:
-  pushl $0
-  push $intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $31
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $31
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 .globl vector32
 vector32:
-  pushl $0
-  push $time_intr_str
-  call kputs
-  addl $4, %esp
-  //pushl $32
-  movb $0x20, %al
-  outb %al, $0xa0
-  outb %al, $0x20
-  addl $4, %esp
-  iret
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $32
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+
+.section .text
+.global intr_exit
+intr_exit:
+    addl $4, %esp
+    popal
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    addl $4, %esp
+    iret
 
 # vector table
 .section .data

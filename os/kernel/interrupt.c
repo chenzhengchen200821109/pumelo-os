@@ -2,6 +2,7 @@
 #include "x86.h"
 #include "stdio.h"
 #include "kernel.h"
+#include "clock.h"
 
 #define PIC_M_CTRL 0x20
 #define PIC_M_DATA 0x21
@@ -38,7 +39,18 @@ void general_intr_handler(uint8_t vecno)
 {
     if (vecno == 0x27 || vecno == 0x2f)
         return;
-    kprintf("int vector no : %d\n", vecno);
+    //kprintf("int vector no : %d\n", vecno);
+    if (vecno == 14) { // page fault
+        int page_fault_vaddr = 0;
+        asm volatile ("movl %%cr2, %0" : "=r" (page_fault_vaddr));
+        kprintf("page fault vaddr is 0x%x\n", page_fault_vaddr);
+        while (1)
+            ;
+    }
+    else if (vecno == 32) {
+        kprintf("timer interrupt: %d\n", ticks);
+        timer_intr_handler();
+    }
 }
 
 static void idt_desc_init()
@@ -48,6 +60,11 @@ static void idt_desc_init()
         make_intr_descriptor(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
     kputs("idt_desc_init done");
 }
+
+//void register_handler(uint8_t vecno, intr_handler function)
+//{
+//    make_intr_descriptor(&idt[vecno], IDT_DESC_ATTR_DPL0, function);
+//}
 
 /* 8259A */
 static void pic_init()

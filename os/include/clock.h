@@ -6,6 +6,7 @@
 extern volatile size_t ticks;
 
 void clock_init(void);
+void timer_intr_handler();
 
 #endif /* _CLOCK_H__ */
 
