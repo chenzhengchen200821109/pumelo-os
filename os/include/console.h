@@ -9,4 +9,6 @@ void cons_init();
 /* cons_putc - print a single character to console devices */
 void cons_putc(int c);
 
+void cons_putc_lock(int c);
+
 #endif

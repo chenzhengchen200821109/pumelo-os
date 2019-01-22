@@ -8,9 +8,9 @@ struct spinlock
     uint32_t locked;  // Is the lock held?
 };
 
-void initlock(struct spinlock* lk);
-void acquire(struct spinlock* lk);
-void release(struct spinlock* lk);
+void spinlock_init(struct spinlock* lk);
+void spinlock_acquire(struct spinlock* lk);
+void spinlock_release(struct spinlock* lk);
 void pushcli(void);
 void popcli(void);
 int holding(struct spinlock* lk);

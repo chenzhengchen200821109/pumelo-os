@@ -2,7 +2,7 @@
 #include "assert.h"
 #include "x86.h"
 
-void initlock(struct spinlock* lk)
+void spinlock_init(struct spinlock* lk)
 {
     lk->locked = 0;
 }
@@ -11,7 +11,7 @@ void initlock(struct spinlock* lk)
 // Loops (spins) until the lock is acquired.
 // Holding a lock for a long time may cause other
 // CPUs to waste time spinning to acquire it.
-void acquire(struct spinlock* lk)
+void spinlock_acquire(struct spinlock* lk)
 {
     pushcli();  // disable interrupt to avoid deadlock
     if (holding(lk))
@@ -25,7 +25,7 @@ void acquire(struct spinlock* lk)
 }
 
 // Release the lock
-void release(struct spinlock* lk)
+void spinlock_release(struct spinlock* lk)
 {
     if (!holding(lk))
         panic("release");

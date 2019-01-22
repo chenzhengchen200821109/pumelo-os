@@ -21,7 +21,6 @@ int main()
     clock_init();
 
     kthread_init();
-    //asm volatile ("sti");
 
     thread_start("kthread_a", 31, kthread_a, "argA");
     thread_start("kthread_b", 20, kthread_b, "argB");
@@ -32,9 +31,6 @@ int main()
 
     while (1) {
         asm volatile ("cli");
-        //cons_putc('M');
-        //cons_putc('a');
-        //cons_putc('i');
         kprintf("Main\n");
         asm volatile ("sti");
     }
@@ -45,12 +41,11 @@ void kthread_a(void* arg)
 {
     char* para = arg;
     while (1) {
-        asm volatile ("cli");
-        kprintf("%s\n", para);
-        //cons_putc('a');
-        //cons_putc('r');
-        //cons_putc('g');
-        asm volatile ("sti");
+        //asm volatile ("cli");
+        //kprintf("%s\n", para);
+        cons_putc_lock('A');
+        cons_putc_lock('\n');
+        //asm volatile ("sti");
     }
 }
 
@@ -58,11 +53,10 @@ void kthread_b(void* arg)
 {
     char* para = arg;
     while (1) {
-        asm volatile ("cli");
-        kprintf("%s\n", para);
-        //cons_putc('b');
-        //cons_putc('r');
-        //cons_putc('g');
-        asm volatile ("sti");
+        //asm volatile ("cli");
+        //kprintf("%s\n", para);
+        cons_putc_lock('B');
+        cons_putc_lock('\n');
+        //asm volatile ("sti");
     }
 }

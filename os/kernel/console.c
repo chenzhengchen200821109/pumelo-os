@@ -3,6 +3,8 @@
 #include "console.h"
 #include "string.h"
 
+#include "sync.h"
+
 #define VGA_BUF 0xc00b8000
 #define CRT_ROWS 25
 #define CRT_COLS 80
@@ -11,6 +13,8 @@
 static uint16_t* crt_buf;
 static uint16_t crt_pos;
 static uint16_t addr_6845;
+static struct lock console_lock;
+
 
 /* TEXT-mode - VGA display output */
 static void
@@ -76,10 +80,19 @@ vga_putc(int c)
 void cons_init()
 {
     vga_init();
+    lock_init(&console_lock);
 }
 
 void cons_putc(int c)
 {
+    //lock_acquire(&console_lock);
     vga_putc(c);
+    //lock_release(&console_lock);
 }
 
+void cons_putc_lock(int c)
+{
+    lock_acquire(&console_lock);
+    vga_putc(c);
+    lock_release(&console_lock);
+}
