@@ -63,6 +63,10 @@ void schedule()
 
     struct thread_struct* cur = running_thread();
 
+	if (list_empty(&(thread_ready_list))) {
+		thread_unblock(ide_thread);
+	}
+
     if (cur->status == TASK_RUNNING) {
         assert(!list_find(&thread_ready_list, &cur->general_tag));
         // already in thread_ready_list
@@ -145,11 +149,35 @@ static void Make_Main_Thread()
     //list_append(&thread_ready_list, &main_thread->general_tag);
 }
 
+struct thread_struct* ide_thread;
+
+static void idle(void* arg)
+{
+	while (1) {
+		thread_block(TASK_BLOCKED);
+		asm volatile ("sti; hlt" : : : "memory");
+	}
+}
+
+void thread_yield()
+{
+	struct thread_struct* cur = running_thread();
+	enum intr_status old_status = intr_disable();
+	assert(!list_find(&thread_ready_list, &cur->general_tag));
+	list_append(&thread_ready_list, &cur->general_tag);
+	cur->status = TASK_READY;
+	schedule();
+	intr_set_status(old_status);
+}
+
 void kthread_init()
 {
     kprintf("kthread_init start\n");
     list_init(&thread_ready_list);
     list_init(&thread_list_all);
     Make_Main_Thread();
+
+	ide_thread = thread_start("idle", 10, idle, NULL);
+
     kprintf("kthread_init done\n");
 }
