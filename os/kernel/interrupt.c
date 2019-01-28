@@ -85,6 +85,10 @@ static void pic_init()
     outb(PIC_M_DATA, 0xfe);
     outb(PIC_S_DATA, 0xff);
 
+    // enable disk interrupt now
+    outb(PIC_M_DATA, 0xf8);
+    outb(PIC_S_DATA, 0xbf);
+
     kputs("pic_init done");
 }
 

@@ -3,6 +3,8 @@
 
 #include "defs.h"
 #include "bitmap.h"
+#include "inode.h"
+#include "list.h"
 
 struct partition
 {
