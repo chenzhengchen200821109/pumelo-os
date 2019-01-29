@@ -5,14 +5,16 @@
 #include "bitmap.h"
 #include "inode.h"
 #include "list.h"
+#include "sync.h"
 
 struct partition
 {
     uint32_t start_lba;
     uint32_t sec_cnt;
     struct disk* my_disk;
-    struct list_elem part_tag;
+    struct list_entry part_tag;
     char name[8];
+	// below for file system
     struct super_block* sb;
     struct bitmap block_bitmap;
     struct bitmap inode_bitmap;
@@ -38,5 +40,7 @@ struct ide_channel
     struct semaphore disk_done;
     struct disk devices[2];
 };
+
+void ide_init();
 
 #endif
