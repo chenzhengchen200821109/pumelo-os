@@ -92,3 +92,91 @@ static void partition_format(struct disk* hd, struct partition* part)
 
 	
 }
+
+void filesys_init()
+{
+	uint8_t channel_no = 0, dev_no = 0, part_idx = 0;
+
+	struct super_block* sb_buf = (struct super_block *)sys_malloc(SECTOR_SIZE);
+
+	if (sb_buf == NULL) {
+		panic("alloc memory failed");
+	}
+	kprintf("searching filesystem...\n");
+	while (channel_no < channel_cnt) {
+		dev_no = 0;
+		while (dev_no < 2) {
+			if (dev_no == 0) {
+				dev_no++;
+				continue;
+			}
+			struct disk* hd = &channels[channel_no].devices[dev_no];
+			struct partition* part = had->prim_parts;
+			while (part_idx < 12) {
+				if (part_idx == 4)
+					part = had->logic_parts;
+				if (part->sec_cnt != 0) {
+					memset(sb_buf, 0, SECTOR_SIZE);
+					ide_read(hd, part->start_lba + 1, sb_buf, 1);
+					if (sb_buf->magic == 0x19590318)
+						kprintf("%s has filesystem\n", part->name);
+					else {
+						kprintf("formating %s's partition %s......\n", hd->name, part->name);
+						partition_format(part);
+					}
+				}
+				part_idx++;
+				part++;
+			}
+			dev_no++;
+		}
+		channel_no++;
+	}
+	sys_free(sb_buf);
+}
+
+struct partition* cur_part;
+
+static bool mount_partition(struct list_entry* elem, int arg)
+{
+	char* part_name = (char *)arg;
+
+	struct partition* part = elem2entry(struct partition, part_tag, elem);
+	if (!strcmp(part->name, part_name)) {
+		cur_part = part;
+		struct disk* hd = cur_part->my_disk;
+		struct super_block* sb_buf = (struct super_block *)sys_malloc(SECTOR_SIZE);
+		cur_part->sb = (struct super_block *)sys_malloc(sizeof(struct super_block));
+		if (cur_part->sb == NULL)
+			panic("alloc memory failed");
+		memset(sb_buf, 0, SECTOR_SIZE);
+		ide_read(hd, cur_part->start_lba + 1, sb_buf, 1);
+		memcpy(cur_part->sb, sb_buf, sizeof(struct super_block));
+
+		cur_part->block_bitmap.bits = (uint8_t *)sys_malloc(sb_buf->block_bitmap_sects * SECTOR_SIZE);
+		if (cur_part->block_bitmap.bits == NULL)
+			panic("alloc memory failed");
+		cur_part->block_bitmap.btmp_bytes_len = sb_buf->block_bitmap_sects * SECTOR_SIZE;
+
+		ide_read(hd, sb_buf->block_bitmap_lba, cur_part->block_bitmap.bits, sb_buf->block_bitmap_sects);
+
+		cur_part->inode_bitmap.bits = (uint8_t *)sys_malloc(sb_buf->inode_bitmap_sects * SECTOR_SIZE);
+		if (cur_part->inode_bitmap.bits == NULL)
+			panic("alloc memory failed");
+		cur_part->inode_bitmap.btmp_bytes_len = sb_buf->inode_bitmap_sects * SECTOR_SIZE;
+		ide_read(hd, sb_buf->inode_bitmap_lba, cur_part->inode_bitmap.bits, sb_buf->inode_bitmap_sects);
+		list_init(&cur_part->open_inodes);
+		kprintf("mount %s done\n", part->name);
+
+		return true;
+
+	}
+
+	return false;
+}
+
+void filesys_init()
+{
+	char default_part[8] = "sdb1";
+	list_traversal(&partition_list, mount_partition, (int)default_part);
+}
