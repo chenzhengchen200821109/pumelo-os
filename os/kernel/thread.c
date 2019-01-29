@@ -13,6 +13,7 @@ struct thread_struct* main_thread;
 struct list thread_ready_list;
 struct list thread_list_all;
 static struct list_entry* thread_tag;
+struct thread_struct* ide_thread;
 
 extern void switch_to(struct thread_context* from, struct thread_context* to);
 
@@ -149,7 +150,7 @@ static void Make_Main_Thread()
     //list_append(&thread_ready_list, &main_thread->general_tag);
 }
 
-struct thread_struct* ide_thread;
+//struct thread_struct* ide_thread;
 
 static void idle(void* arg)
 {
@@ -167,7 +168,7 @@ void thread_yield()
 	list_append(&thread_ready_list, &cur->general_tag);
 	cur->status = TASK_READY;
 	schedule();
-	intr_set_status(old_status);
+	set_intr_status(old_status);
 }
 
 void kthread_init()
