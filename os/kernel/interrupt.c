@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "kernel.h"
 #include "clock.h"
+#include "ide.h"
 
 #define PIC_M_CTRL 0x20
 #define PIC_M_DATA 0x21
@@ -46,11 +47,13 @@ void general_intr_handler(uint8_t vecno)
         kprintf("page fault vaddr is 0x%x\n", page_fault_vaddr);
         while (1)
             ;
-    }
-    else if (vecno == 32) {
-        kprintf("timer interrupt: %d\n", ticks);
+    } else if (vecno == 32) {
+        //kprintf("timer interrupt: %d\n", ticks);
         timer_intr_handler();
-    }
+    } else if (vecno == 46 || vecno == 47) {
+		kprintf("disk interrupt occurred\n");
+		hd_intr_handler(vecno);
+	}
 }
 
 static void idt_desc_init()

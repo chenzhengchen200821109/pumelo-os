@@ -42,5 +42,6 @@ struct ide_channel
 };
 
 void ide_init();
+void hd_intr_handler(uint8_t irq_no);
 
 #endif

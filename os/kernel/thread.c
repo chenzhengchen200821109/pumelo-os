@@ -13,7 +13,7 @@ struct thread_struct* main_thread;
 struct list thread_ready_list;
 struct list thread_list_all;
 static struct list_entry* thread_tag;
-struct thread_struct* ide_thread;
+struct thread_struct* idle_thread;
 
 extern void switch_to(struct thread_context* from, struct thread_context* to);
 
@@ -53,7 +53,7 @@ static void Thread_create(struct thread_struct* pthread, thread_func* func, void
     param->arg = func_arg;
     sp = sp - sizeof(void *);
     pthread->self_kstack = sp;
-    kprintf("sp address is 0x%x\n", pthread->self_kstack);
+    //kprintf("sp address is 0x%x\n", pthread->self_kstack);
     pthread->context.eip = (void *)kernel_thread_entry;
     pthread->context.esp = (void *)sp;
 }
@@ -64,9 +64,9 @@ void schedule()
 
     struct thread_struct* cur = running_thread();
 
-	if (list_empty(&(thread_ready_list))) {
-		thread_unblock(ide_thread);
-	}
+	//if (list_empty(&(thread_ready_list))) {
+	//	thread_unblock(idle_thread);
+	//}
 
     if (cur->status == TASK_RUNNING) {
         assert(!list_find(&thread_ready_list, &cur->general_tag));
@@ -78,11 +78,14 @@ void schedule()
         // 
     }
 
-    assert(!list_empty(&thread_ready_list));
+    //assert(!list_empty(&thread_ready_list));
+	if (list_empty(&thread_ready_list)) {
+		thread_unblock(idle_thread);
+	}
     thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
     struct thread_struct* next = to_struct(thread_tag, struct thread_struct, general_tag);
-    kprintf("next is 0x%x\n", next);
+    //kprintf("next is 0x%x\n", next);
     next->status = TASK_RUNNING;
     switch_to(&cur->context, &next->context);
 }
@@ -146,8 +149,8 @@ static void Make_Main_Thread()
     assert(!list_find(&thread_list_all, &main_thread->all_list_tag));
     list_append(&thread_list_all, &main_thread->all_list_tag);
 
-    //assert(!list_find(&thread_ready_list, &main_thread->general_tag));
-    //list_append(&thread_ready_list, &main_thread->general_tag);
+    assert(!list_find(&thread_ready_list, &main_thread->general_tag));
+    list_append(&thread_ready_list, &main_thread->general_tag);
 }
 
 //struct thread_struct* ide_thread;
@@ -178,7 +181,7 @@ void kthread_init()
     list_init(&thread_list_all);
     Make_Main_Thread();
 
-	ide_thread = thread_start("idle", 10, idle, NULL);
+	idle_thread = thread_start("idle", 10, idle, NULL);
 
     kprintf("kthread_init done\n");
 }

@@ -1,5 +1,4 @@
 # handler
-
 //.extern kputs
 .extern general_intr_handler
 
@@ -629,6 +628,348 @@ vector32:
     //addl $4, %esp
     //iret
     jmp intr_exit
+.globl vector33
+vector33:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $33
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector34
+vector34:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $34
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector35
+vector35:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $35
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector36
+vector36:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $36
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector37
+vector37:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $37
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector38
+vector38:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $38
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector39
+vector39:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $39
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector40
+vector40:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $40
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector41
+vector41:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $41
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector42
+vector42:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $42
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector43
+vector43:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $43
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector44
+vector44:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $44
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector45
+vector45:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $45
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector46
+vector46:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $46
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector47
+vector47:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $47
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector48
+vector48:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $48
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector49
+vector49:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $49
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
+.globl vector50
+vector50:
+    pushl $0
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushal
+    //push $time_intr_str
+    //call kputs
+    //addl $4, %esp
+    pushl $50
+    movb $0x20, %al
+    outb %al, $0xa0
+    outb %al, $0x20
+    call general_intr_handler
+    //addl $4, %esp
+    //iret
+    jmp intr_exit
 
 .section .text
 .global intr_exit
@@ -679,4 +1020,22 @@ intr_entry_table:
   .long vector30
   .long vector31
   .long vector32
+  .long vector33
+  .long vector34
+  .long vector35
+  .long vector36
+  .long vector37
+  .long vector38
+  .long vector39
+  .long vector40
+  .long vector41
+  .long vector42
+  .long vector43
+  .long vector44
+  .long vector45
+  .long vector46
+  .long vector47
+  .long vector48
+  .long vector49
+  .long vector50
   

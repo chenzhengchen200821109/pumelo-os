@@ -3,6 +3,8 @@
 
 #include "defs.h"
 
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+
 #define do_div(n, base) ({                                        \
     unsigned long __upper, __low, __high, __mod, __base;        \
     __base = (base);                                            \
