@@ -12,7 +12,7 @@ void lock_init(struct lock* lk)
 {
 	lk->holder = NULL;
 	lk->number = 0;
-	sema_init(&lk->semaphore, 1);
+	spinlock_init(&lk->lock);
 }
 
 void sema_down(struct semaphore* sema)
@@ -46,7 +46,7 @@ void sema_up(struct semaphore* sema)
 void lock_acquire(struct lock* lk)
 {
 	if (lk->holder != running_thread()) {
-		sema_down(&lk->semaphore);
+		spinlock_acquire(&lk->lock);
 		lk->holder = running_thread();
 		assert(lk->number == 0);
 		lk->number = 1;
@@ -64,5 +64,5 @@ void lock_release(struct lock* lk)
 	assert(lk->number == 1);
 	lk->holder = NULL;
 	lk->number = 0;
-	sema_up(&lk->semaphore);
+	spinlock_release(&lk->lock);
 }

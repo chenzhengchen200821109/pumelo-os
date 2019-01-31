@@ -13,7 +13,7 @@
 static uint16_t* crt_buf;
 static uint16_t crt_pos;
 static uint16_t addr_6845;
-static struct lock console_lock;
+struct lock console_lock;
 
 
 /* TEXT-mode - VGA display output */
@@ -85,9 +85,7 @@ void cons_init()
 
 void cons_putc(int c)
 {
-    //lock_acquire(&console_lock);
     vga_putc(c);
-    //lock_release(&console_lock);
 }
 
 void cons_putc_lock(int c)

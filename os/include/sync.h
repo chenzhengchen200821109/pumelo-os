@@ -14,7 +14,8 @@ struct semaphore
 
 struct lock
 {
-	struct semaphore semaphore;
+	//struct semaphore semaphore;
+	struct spinlock lock;
 	struct thread_struct* holder;
 	uint32_t number;
 };

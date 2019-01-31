@@ -36,27 +36,6 @@ uint8_t p_no = 0, l_no = 0;
 
 struct list partition_list;
 
-struct partition_table_entry
-{
-	uint8_t bootable;
-	uint8_t start_head;
-	uint8_t start_sec;
-	uint8_t start_chs;
-	uint8_t fs_type;
-	uint8_t end_head;
-	uint8_t end_sec;
-	uint8_t end_chs;
-	uint32_t start_lba;
-	uint32_t sec_cnt;
-} __attribute__((packed));
-
-struct boot_sector
-{
-	uint8_t other[464];
-	struct partition_table_entry partition_table[4];
-	uint16_t signature;
-} __attribute__((packed));
-
 uint8_t channel_cnt;
 struct ide_channel channels[2];
 
@@ -96,7 +75,7 @@ static void read_from_sector(struct disk* hd, void* buf, uint8_t sec_cnt)
 		size_in_byte = 256 * 512;
 	else 
 		size_in_byte = sec_cnt * 512;
-	insl(reg_data(hd->my_channel), buf, size_in_byte / 2);
+	insw(reg_data(hd->my_channel), buf, size_in_byte / 2);
 }
 
 static void write_to_sector(struct disk* hd, void* buf, uint8_t sec_cnt)
@@ -107,7 +86,7 @@ static void write_to_sector(struct disk* hd, void* buf, uint8_t sec_cnt)
 		size_in_byte = 256 * 512;
 	else
 		size_in_byte = sec_cnt * 512;
-	outsl(reg_data(hd->my_channel), buf, size_in_byte / 2);
+	outsw(reg_data(hd->my_channel), buf, size_in_byte / 2);
 }
 
 static int busy_wait(struct disk* hd)
@@ -121,6 +100,19 @@ static int busy_wait(struct disk* hd)
 			mtime_sleep(10);
 	}
 	return 0;
+
+	//while (inb(reg_status(channel)) & BIT_ALT_STAT_BSY)
+	//	;
+	
+	//if (inb(reg_status(channel)) & BIT_ALT_STAT_DRQ)
+	//	return 1;
+	//else
+	//	return 0;
+	
+	//while (inb(reg_status(channel)) & BIT_ALT_STAT_DRQ) {
+	//	break;
+	//}
+	//return 1;
 }
 
 static void swap_bytes(const char* dst, char* buf, uint32_t len)
@@ -152,13 +144,14 @@ static void identify_disk(struct disk* hd)
 	char buf[64];
 	uint8_t sn_start = 10 * 2, sn_len = 20, md_start = 27 * 2, md_len = 40;
 	swap_bytes(&id_info[sn_start], buf, sn_len);
-	kprintf("disk %s info:\n sn: %s\n", hd->name, buf);
+	kprintf("    disk %s info:\n", hd->name);
+	kprintf("        SN: %s\n", buf);
 	memset(buf, 0, sizeof(buf));
 	swap_bytes(&id_info[md_start], buf, md_len);
-	kprintf("module: %s\n", buf);
+	kprintf("        Module: %s\n", buf);
 	uint32_t sectors = *(uint32_t *)&id_info[60 * 2];
-	kprintf("sectors: %d\n", sectors);
-	kprintf("capacity: %dMB\n", sectors * 512 / 1024 / 1024);
+	kprintf("        Sectors: %d\n", sectors);
+	kprintf("        Capacity: %dMB\n", sectors * 512 / 1024 / 1024);
 }
 
 void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt)
@@ -208,20 +201,21 @@ static void partition_scan(struct disk* hd, uint32_t ext_lba)
 	struct partition_table_entry* p = bs->partition_table;
 
 	while (part_idx++ < 4) {
-		if (p->fs_type == 0x5) {
+		if (p->fs_type == 0x5) { // extended partition
 			if (ext_lba_base != 0) {
 				partition_scan(hd, p->start_lba + ext_lba_base);
-			} else {
+			} else { // mbr
 				ext_lba_base = p->start_lba;
 				partition_scan(hd, p->start_lba);
 			}
-		} else if (p->fs_type != 0) {
+		} else if (p->fs_type != 0) { // linux
 			if (ext_lba == 0) {
 				hd->prim_parts[p_no].start_lba = ext_lba + p->start_lba;
 				hd->prim_parts[p_no].sec_cnt = p->sec_cnt;
 				hd->prim_parts[p_no].my_disk = hd;
 				list_append(&partition_list, &hd->prim_parts[p_no].part_tag);
 				snprintf(hd->prim_parts[p_no].name, 8, "%s%d", hd->name, p_no + 1);
+				kprintf("pimary partition name: %s\n", hd->prim_parts[p_no].name);
 				p_no++;
 				assert(p_no < 4);
 			} else {
@@ -302,8 +296,8 @@ void ide_init()
 	uint8_t hd_cnt = *(uint8_t *)0x475;
 	assert(hd_cnt > 0);
 
-	//channel_cnt = DIV_ROUND_UP(hd_cnt, 2);
-	channel_cnt = hd_cnt / 2;
+	channel_cnt = DIV_ROUND_UP(hd_cnt, 2);
+	//channel_cnt = hd_cnt / 2;
 
 	struct ide_channel* channel;
 	uint8_t channel_no = 0;
@@ -312,7 +306,6 @@ void ide_init()
 	while (channel_no < channel_cnt) {
 		channel = &channels[channel_no];
 		snprintf(channel->name, sizeof(channel->name), "ide%d", channel_no);
-		//kprintf("%s\n", channel->name);
 
 		switch(channel_no) {
 			case 0:
@@ -335,8 +328,8 @@ void ide_init()
 			hd->dev_no = dev_no;
 			snprintf(hd->name, 8, "sd%c", 'a' + channel_no * 2 + dev_no);
 			identify_disk(hd);
-			if (dev_no != 0)
-				partition_scan(hd, 0);
+			//if (dev_no != 0)
+			//	partition_scan(hd, 0);
 			p_no = 0;
 			l_no = 0;
 			dev_no++;
@@ -364,11 +357,8 @@ void ide_init()
 	//dev_no = 0;
 	//channel_no++;
 
-	kprintf("\nall partition info\n");
-	list_traversal(&partition_list, partition_info, (int)NULL);
+	//kprintf("\nall partition info\n");
+	//list_traversal(&partition_list, partition_info, (int)NULL);
 	kprintf("ide_init done\n");
 }
-
-
-
 
