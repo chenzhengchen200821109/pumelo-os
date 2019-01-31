@@ -22,7 +22,11 @@ typedef int bool;
 typedef int32_t intptr_t;
 typedef uint32_t uintptr_t;
 
+typedef int bool;
+
 #define NULL 0
+#define false 0
+#define true 1
 
 /* Return the offset of 'member' relative to the beginning of a struct type */
 #define offsetof(type, member)                                      \

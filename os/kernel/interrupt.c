@@ -10,7 +10,7 @@
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
 
-#define IDT_DESC_CNT 0x21
+#define IDT_DESC_CNT 0x32
 
 typedef uintptr_t intr_handler;
 
@@ -89,8 +89,8 @@ static void pic_init()
     outb(PIC_S_DATA, 0xff);
 
     // enable disk interrupt now
-    //outb(PIC_M_DATA, 0xf8);
-    //outb(PIC_S_DATA, 0xbf);
+    outb(PIC_M_DATA, 0xf8);
+    outb(PIC_S_DATA, 0xbf);
 
     kputs("pic_init done");
 }

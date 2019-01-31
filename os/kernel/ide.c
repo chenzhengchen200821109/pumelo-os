@@ -89,30 +89,20 @@ static void write_to_sector(struct disk* hd, void* buf, uint8_t sec_cnt)
 	outsw(reg_data(hd->my_channel), buf, size_in_byte / 2);
 }
 
-static int busy_wait(struct disk* hd)
+static bool busy_wait(struct disk* hd)
 {
 	struct ide_channel* channel = hd->my_channel;
+	uint8_t status;
 	uint16_t time_limit = 30 * 1000;
 	while (time_limit -= 10 > 0) {
-		if (!inb(reg_status(channel)) & BIT_ALT_STAT_BSY)
-			return (inb(reg_status(channel)) & BIT_ALT_STAT_DRQ);
-		else
+		status = inb(reg_status(channel));
+		kprintf_lock("status = 0x%x\n", status);
+		if (status & BIT_ALT_STAT_BSY) 
 			mtime_sleep(10);
+		else if (status & BIT_ALT_STAT_DRQ)
+			return true;
 	}
-	return 0;
-
-	//while (inb(reg_status(channel)) & BIT_ALT_STAT_BSY)
-	//	;
-	
-	//if (inb(reg_status(channel)) & BIT_ALT_STAT_DRQ)
-	//	return 1;
-	//else
-	//	return 0;
-	
-	//while (inb(reg_status(channel)) & BIT_ALT_STAT_DRQ) {
-	//	break;
-	//}
-	//return 1;
+	return false;
 }
 
 static void swap_bytes(const char* dst, char* buf, uint32_t len)
@@ -132,6 +122,7 @@ static void identify_disk(struct disk* hd)
 	select_disk(hd);
 	cmd_out(hd->my_channel, CMD_IDENTIFY);
 
+	// blocked thread
 	sema_down(&hd->my_channel->disk_done);
 
 	if (!busy_wait(hd)) {
@@ -171,7 +162,6 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt)
 		else
 			secs_op = sec_cnt - secs_done;
 	
-
 		select_sector(hd, lba + secs_done, secs_op);
 
 		cmd_out(hd->my_channel, CMD_READ_SECTOR);
@@ -279,6 +269,7 @@ void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt)
 
 void hd_intr_handler(uint8_t irq_no)
 {
+	uint8_t res;
 	assert(irq_no == 0x2e || irq_no == 0x2f);
 	uint8_t channel_no = irq_no - 0x2e;
 	struct ide_channel* channel = &channels[channel_no];
@@ -286,7 +277,8 @@ void hd_intr_handler(uint8_t irq_no)
 	if (channel->expecting_intr) {
 		channel->expecting_intr = 0;
 		sema_up(&channel->disk_done);
-		inb(reg_status(channel));
+		res = inb(reg_status(channel));
+		kprintf_lock("status = 0x%x\n", res);
 	}
 }
 
