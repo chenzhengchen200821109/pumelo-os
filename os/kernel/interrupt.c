@@ -51,7 +51,7 @@ void general_intr_handler(uint8_t vecno)
         //kprintf("timer interrupt: %d\n", ticks);
         timer_intr_handler();
     } else if (vecno == 46 || vecno == 47) {
-		kprintf("disk interrupt occurred\n");
+		//kprintf("disk interrupt occurred\n");
 		hd_intr_handler(vecno);
 	}
 }

@@ -23,12 +23,10 @@ int main()
     idt_init();
     clock_init();
 
-	//ide_init();
-
     kthread_init();
 
-    //thread_start("kthread_a", 31, kthread_a, "argA");
-    //thread_start("kthread_b", 20, kthread_b, "argB");
+    thread_start("kthread_a", 31, kthread_a, "argA");
+    thread_start("kthread_b", 20, kthread_b, "argB");
 
     asm volatile ("sti");
 
@@ -45,15 +43,19 @@ int main()
 void kthread_a(void* arg) 
 {
     char* para = arg;
+	void* addr = sys_malloc(33);
     while (1) {
 		kprintf_lock("%s ", para);
+		kprintf_lock("addr is 0x%x\n", addr);
     }
 }
 
 void kthread_b(void* arg)
 {
     char* para = arg;
+	void* addr = sys_malloc(63);
     while (1) {
     	kprintf_lock("%s ", para);
+		kprintf_lock("addr is 0x%x\n", addr);
     }
 }

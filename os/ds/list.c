@@ -51,7 +51,7 @@ int list_find(struct list* plist, struct list_entry* target)
 {
     struct list_entry* elem = (plist->header).next;
     while (elem != &plist->tailer) {
-        kprintf("elem = 0x%x, target = 0x%x\n", elem, target);
+        //kprintf("elem = 0x%x, target = 0x%x\n", elem, target);
         if (elem == target)
             return 1;  // true
         elem = elem->next;

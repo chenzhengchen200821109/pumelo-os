@@ -154,7 +154,7 @@ static void idle(void* arg)
 {
 	while (1) {
 		thread_block(TASK_BLOCKED);
-		kprintf_lock("idle ");
+		//kprintf_lock("idle is working\n");
 		//thread_unblock(main_thread);
 		asm volatile ("sti; hlt" : : : "memory");
 	}

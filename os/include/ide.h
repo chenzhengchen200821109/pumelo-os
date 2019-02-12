@@ -23,7 +23,7 @@ struct partition_table_entry
 
 struct boot_sector
 {
-	uint8_t other[464];
+	uint8_t other[446];
 	struct partition_table_entry partition_table[4];
 	uint16_t signature;
 } __attribute__((packed));
