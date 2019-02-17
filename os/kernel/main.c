@@ -7,6 +7,7 @@
 #include "interrupt.h"
 #include "thread.h"
 #include "ide.h"
+#include "fs.h"
 
 extern struct thread_struct* main_thread;
 
@@ -32,6 +33,8 @@ int main()
 
 	ide_init();
 
+	filesys_init();
+
     while (1) {
 		//kprintf_lock("Main ");
 		//thread_block(TASK_BLOCKED);
@@ -43,10 +46,12 @@ int main()
 void kthread_a(void* arg) 
 {
     char* para = arg;
-	void* addr = sys_malloc(33);
+	void* addr = sys_malloc(512);
+	void* addr1 = sys_malloc(512);
     while (1) {
 		kprintf_lock("%s ", para);
 		kprintf_lock("addr is 0x%x\n", addr);
+		kprintf_lock("addr1 is 0x%x\n", addr);
     }
 }
 

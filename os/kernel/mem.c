@@ -122,12 +122,14 @@ static void insert_page_table(void* vaddr, void* paddr)
     uint32_t _paddr = (uint32_t)paddr;
     uint32_t* pde = pde_addr(_vaddr);
     uint32_t* pte = pte_addr(_vaddr);
+	//kprintf_lock("*pte = 0x%x\n", *pte);
 
-    if (*pde & 0x1) {
-        if (!(*pte & 0x1)) {
+    if (*pde & 0x00000001) {
+        if (!(*pte & 0x00000001)) {
             *pte = (_paddr | PG_US_U | PG_RW_W | PG_P_1);
         } else {
-            panic("pte existed");
+            //panic("pte existed"); // how this happen?
+			*pte = (_paddr | PG_US_U | PG_RW_W | PG_P_1);
         }
     } else {
         uint32_t pde_paddr = (uint32_t)alloc_physical_pages(&kernel_pool);
