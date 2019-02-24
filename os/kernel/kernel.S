@@ -1019,8 +1019,8 @@ intr_entry_table:
   .long vector29
   .long vector30
   .long vector31
-  .long vector32
-  .long vector33
+  .long vector32  # timer interrupt
+  .long vector33  # keyboard interrupt
   .long vector34
   .long vector35
   .long vector36
@@ -1031,9 +1031,9 @@ intr_entry_table:
   .long vector41
   .long vector42
   .long vector43
-  .long vector44
-  .long vector45
-  .long vector46
+  .long vector44  # ps/2 mouse
+  .long vector45  # FPU float unit
+  .long vector46  # disk interrupt
   .long vector47
   .long vector48
   .long vector49
