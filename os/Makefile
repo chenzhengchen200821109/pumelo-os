@@ -42,7 +42,7 @@ $(HDIMG):
 $(HD80IMG):
 	bximage -hd=80 -mode=create -imgmode=flat -q $(HD80IMG)
 
-$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)interrupt.c $(KERNELDIR)panic.c $(KERNELDIR)pmm.c $(KERNELDIR)mem.c $(DSDIR)bitmap.c $(KERNELDIR)kernel.S $(KERNELDIR)intr.c $(KERNELDIR)clock.c $(DSDIR)list.c $(KERNELDIR)thread.c $(KERNELDIR)switch.S $(KERNELDIR)spinlock.c $(KERNELDIR)sync.c
+$(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNELDIR)stdio.c $(KERNELDIR)printfmt.c $(KERNELDIR)interrupt.c $(KERNELDIR)panic.c $(KERNELDIR)pmm.c $(KERNELDIR)mem.c $(DSDIR)bitmap.c $(KERNELDIR)kernel.S $(KERNELDIR)intr.c $(KERNELDIR)clock.c $(DSDIR)list.c $(KERNELDIR)thread.c $(KERNELDIR)switch.S $(KERNELDIR)spinlock.c $(KERNELDIR)sync.c $(KERNELDIR)ide.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o $(KERNEL).o $(KERNELDIR)main.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o console.o $(KERNELDIR)console.c
 	$(CC) $(INCLUDE) -c -nostdlib -static -fno-asynchronous-unwind-tables -o string.o $(KERNELDIR)string.c
@@ -60,9 +60,11 @@ $(KERNEL): $(KERNELDIR)main.c $(KERNELDIR)console.c $(KERNELDIR)string.c $(KERNE
 	$(AS) $(INCLUDE) -o switch.o $(KERNELDIR)switch.S
 	$(AS) $(INCLUDE) -o kernel.o $(KERNELDIR)kernel.S
 	$(CC) $(INCLUDE) $(CCFLAGS) -o spinlock.o $(KERNELDIR)spinlock.c
-	$(CC) $(INCLUDE) $(CCFLAGS) -o lock.o $(KERNELDIR)sync.c
-	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o interrupt.o panic.o pmm.o mem.o bitmap.o kernel.o intr.o clock.o thread.o list.o switch.o spinlock.o lock.o
+	$(CC) $(INCLUDE) $(CCFLAGS) -o sync.o $(KERNELDIR)sync.c
+	$(CC) $(INCLUDE) $(CCFLAGS) -o ide.o $(KERNELDIR)ide.c
+	$(CC) $(INCLUDE) $(CCFLAGS) -o fs.o $(KERNELDIR)fs.c
+	$(LD) -e main -Ttext 0xc0001500 -o $(KERNEL) $(KERNEL).o console.o string.o stdio.o printfmt.o interrupt.o panic.o pmm.o mem.o bitmap.o kernel.o intr.o clock.o thread.o list.o switch.o spinlock.o sync.o ide.o fs.o
 	$(DD) if=$(KERNEL) of=$(HDIMG) bs=512 count=127 seek=10 conv=notrunc
 
 clean:
-	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o console.o intr.o clock.o panic.o pmm.o mem.o bitmap.o list.o thread.o interrupt.o switch.o kernel.o stdio.o printfmt.o string.o spinlock.o lock.o 
+	rm hd60M.img loader mbr loader.o mbr.o $(KERNEL) $(KERNEL).o helper.o console.o intr.o clock.o panic.o pmm.o mem.o bitmap.o list.o thread.o interrupt.o switch.o kernel.o stdio.o printfmt.o string.o spinlock.o sync.o fs.o hd80M.img 

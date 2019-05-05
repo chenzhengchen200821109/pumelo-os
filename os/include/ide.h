@@ -5,14 +5,37 @@
 #include "bitmap.h"
 #include "inode.h"
 #include "list.h"
+#include "sync.h"
+
+struct partition_table_entry
+{
+	uint8_t bootable;
+	uint8_t start_head;
+	uint8_t start_sec;
+	uint8_t start_chs;
+	uint8_t fs_type;
+	uint8_t end_head;
+	uint8_t end_sec;
+	uint8_t end_chs;
+	uint32_t start_lba;
+	uint32_t sec_cnt;
+} __attribute__((packed));
+
+struct boot_sector
+{
+	uint8_t other[446];
+	struct partition_table_entry partition_table[4];
+	uint16_t signature;
+} __attribute__((packed));
 
 struct partition
 {
     uint32_t start_lba;
     uint32_t sec_cnt;
     struct disk* my_disk;
-    struct list_elem part_tag;
+    struct list_entry part_tag;
     char name[8];
+	// below for file system
     struct super_block* sb;
     struct bitmap block_bitmap;
     struct bitmap inode_bitmap;
@@ -38,5 +61,8 @@ struct ide_channel
     struct semaphore disk_done;
     struct disk devices[2];
 };
+
+void ide_init();
+void hd_intr_handler(uint8_t irq_no);
 
 #endif

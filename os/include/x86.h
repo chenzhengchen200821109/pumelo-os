@@ -3,6 +3,8 @@
 
 #include "defs.h"
 
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+
 #define do_div(n, base) ({                                        \
     unsigned long __upper, __low, __high, __mod, __base;        \
     __base = (base);                                            \
@@ -19,9 +21,13 @@
  })
 
 static inline uint8_t inb(uint16_t port) __attribute__((always_inline));
+static inline uint16_t inw(uint16_t port) __attribute__((always_inline));
+static inline void insw(uint16_t port, void* addr, int cnt) __attribute__((always_inline));
 static inline void insl(uint32_t port, void *addr, int cnt) __attribute__((always_inline));
 static inline void outb(uint16_t port, uint8_t data) __attribute__((always_inline));
 static inline void outw(uint16_t port, uint16_t data) __attribute__((always_inline));
+static inline void outsw(uint16_t port, const void* addr, int cnt) __attribute__((always_inline));
+static inline void outsl(uint32_t port, const void* addr, int cnt) __attribute__((always_inline));
 
 /* Pseudo-descriptors used for LGDT, LLDT(not used) and LIDT instructions. */
 struct pseudodesc {
@@ -37,8 +43,21 @@ static inline void ltr(uint16_t sel) __attribute__((always_inline));
 static inline uint8_t
 inb(uint16_t port) {
     uint8_t data;
-    asm volatile ("inb %1, %0" : "=a" (data) : "d" (port));
+    asm volatile ("inb %1, %0" : "=a" (data) : "d" (port) : "memory");
     return data;
+}
+
+static inline uint16_t
+inw(uint16_t port) {
+	uint16_t data;
+	asm volatile ("inw %1, %0" : "=a" (data) : "d" (port));
+	return data;
+}
+
+static inline void
+insw(uint16_t port, void* addr, int cnt)
+{
+	asm volatile ("cld; rep insw" : "+D" (addr), "+c" (cnt) : "d" (port) : "memory");
 }
 
 // insl -- input (%ecx) doubleword from I/O port specified in %dx into
@@ -61,6 +80,22 @@ outb(uint16_t port, uint8_t data) {
 static inline void
 outw(uint16_t port, uint16_t data) {
     asm volatile ("outw %0, %1" :: "a" (data), "d" (port));
+}
+
+static inline void
+outsw(uint16_t port, const void* addr, int cnt)
+{
+	asm volatile ("cld; rep outsw" : "+S" (addr), "+c" (cnt) : "d" (port));
+}
+
+static inline void
+outsl(uint32_t port, const void* addr, int cnt) {
+	asm volatile (
+		"cld;"
+		"repne; outsl;"
+		: "=S" (addr), "=c" (cnt)
+		: "d" (port), "0" (addr), "1" (cnt)
+		: "memory", "cc");
 }
 
 static inline void

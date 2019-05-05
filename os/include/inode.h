@@ -12,7 +12,7 @@ struct inode
     uint32_t i_open_cnts;
     bool write_only;
 
-    uint32_t i_sectos[13];
+    uint32_t i_sectors[13];
     struct list_entry inode_tag;
 };
 

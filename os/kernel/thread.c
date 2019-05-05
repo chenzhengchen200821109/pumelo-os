@@ -13,6 +13,7 @@ struct thread_struct* main_thread;
 struct list thread_ready_list;
 struct list thread_list_all;
 static struct list_entry* thread_tag;
+struct thread_struct* idle_thread;
 
 extern void switch_to(struct thread_context* from, struct thread_context* to);
 
@@ -52,7 +53,7 @@ static void Thread_create(struct thread_struct* pthread, thread_func* func, void
     param->arg = func_arg;
     sp = sp - sizeof(void *);
     pthread->self_kstack = sp;
-    kprintf("sp address is 0x%x\n", pthread->self_kstack);
+    //kprintf("sp address is 0x%x\n", pthread->self_kstack);
     pthread->context.eip = (void *)kernel_thread_entry;
     pthread->context.esp = (void *)sp;
 }
@@ -63,9 +64,9 @@ void schedule()
 
     struct thread_struct* cur = running_thread();
 
-	if (list_empty(&(thread_ready_list))) {
-		thread_unblock(ide_thread);
-	}
+	//if (list_empty(&(thread_ready_list))) {
+	//	thread_unblock(idle_thread);
+	//}
 
     if (cur->status == TASK_RUNNING) {
         assert(!list_find(&thread_ready_list, &cur->general_tag));
@@ -74,14 +75,16 @@ void schedule()
         cur->ticks = cur->priority;
         cur->status = TASK_READY;
     } else {
-        // 
+        // TASK_READY 
     }
 
-    assert(!list_empty(&thread_ready_list));
+    //assert(!list_empty(&thread_ready_list));
+	if (list_empty(&thread_ready_list)) {
+		thread_unblock(idle_thread);
+	}
     thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
     struct thread_struct* next = to_struct(thread_tag, struct thread_struct, general_tag);
-    kprintf("next is 0x%x\n", next);
     next->status = TASK_RUNNING;
     switch_to(&cur->context, &next->context);
 }
@@ -95,8 +98,7 @@ struct thread_struct* running_thread()
 
 struct thread_struct* thread_start(char* name, int prio, thread_func* func, void* func_arg)
 {
-    struct thread_struct* thread = (struct thread_struct *)get_kernel_pages(1); // ????
-    kprintf("pthread = 0x%x\n", thread);
+    struct thread_struct* thread = (struct thread_struct *)get_kernel_pages(1);
 
     Thread_init(thread, name, prio);
     Thread_create(thread, func, func_arg);
@@ -108,7 +110,7 @@ struct thread_struct* thread_start(char* name, int prio, thread_func* func, void
     list_append(&thread_list_all, &thread->all_list_tag);
 
     // debug
-    list_traversal(&thread_ready_list, (function)list_print, 0);
+    //list_traversal(&thread_ready_list, (function)list_print, 0);
 
     return thread;
 }
@@ -144,17 +146,16 @@ static void Make_Main_Thread()
 
     assert(!list_find(&thread_list_all, &main_thread->all_list_tag));
     list_append(&thread_list_all, &main_thread->all_list_tag);
-
-    //assert(!list_find(&thread_ready_list, &main_thread->general_tag));
-    //list_append(&thread_ready_list, &main_thread->general_tag);
 }
 
-struct thread_struct* ide_thread;
+//struct thread_struct* ide_thread;
 
 static void idle(void* arg)
 {
 	while (1) {
 		thread_block(TASK_BLOCKED);
+		//kprintf_lock("idle is working\n");
+		//thread_unblock(main_thread);
 		asm volatile ("sti; hlt" : : : "memory");
 	}
 }
@@ -167,7 +168,7 @@ void thread_yield()
 	list_append(&thread_ready_list, &cur->general_tag);
 	cur->status = TASK_READY;
 	schedule();
-	intr_set_status(old_status);
+	set_intr_status(old_status);
 }
 
 void kthread_init()
@@ -177,7 +178,7 @@ void kthread_init()
     list_init(&thread_list_all);
     Make_Main_Thread();
 
-	ide_thread = thread_start("idle", 10, idle, NULL);
+	idle_thread = thread_start("idle", 10, idle, NULL);
 
     kprintf("kthread_init done\n");
 }

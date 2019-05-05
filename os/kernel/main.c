@@ -6,6 +6,10 @@
 #include "mem.h"
 #include "interrupt.h"
 #include "thread.h"
+#include "ide.h"
+#include "fs.h"
+
+extern struct thread_struct* main_thread;
 
 void kthread_a(void *);
 void kthread_b(void *b);
@@ -27,12 +31,14 @@ int main()
 
     asm volatile ("sti");
 
-    uint32_t counter;
+	ide_init();
+
+	filesys_init();
 
     while (1) {
-        asm volatile ("cli");
-        kprintf("Main\n");
-        asm volatile ("sti");
+		//kprintf_lock("Main ");
+		//thread_block(TASK_BLOCKED);
+		//thread_yield();
     }
     return 0;
 }
@@ -40,23 +46,21 @@ int main()
 void kthread_a(void* arg) 
 {
     char* para = arg;
+	void* addr = sys_malloc(512);
+	void* addr1 = sys_malloc(512);
     while (1) {
-        //asm volatile ("cli");
-        //kprintf("%s\n", para);
-        cons_putc_lock('A');
-        cons_putc_lock('\n');
-        //asm volatile ("sti");
+		kprintf_lock("%s ", para);
+		kprintf_lock("addr is 0x%x\n", addr);
+		kprintf_lock("addr1 is 0x%x\n", addr);
     }
 }
 
 void kthread_b(void* arg)
 {
     char* para = arg;
+	void* addr = sys_malloc(63);
     while (1) {
-        //asm volatile ("cli");
-        //kprintf("%s\n", para);
-        cons_putc_lock('B');
-        cons_putc_lock('\n');
-        //asm volatile ("sti");
+    	kprintf_lock("%s ", para);
+		kprintf_lock("addr is 0x%x\n", addr);
     }
 }

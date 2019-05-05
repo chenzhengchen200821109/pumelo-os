@@ -6,9 +6,13 @@
 
 /* kernel/stdio.c */
 int kprintf(const char *fmt, ...);
+int kprintf_lock(const char* fmt, ...);
 int kvprintf(const char *fmt, va_list ap);
+int kvprintf(const char* fmt, va_list ap);
 void kputchar(int c);
+void kputchar_lock(int c);
 int kputs(const char *str);
+int kputs_lock(const char* str);
 
 /* kernel/printfmt.c */
 void printfmt(void (*putch)(int, void *), void *putdat, const char *fmt, ...);

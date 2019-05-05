@@ -3,13 +3,15 @@
 #include "stdio.h"
 #include "kernel.h"
 #include "clock.h"
+#include "ide.h"
+#include "keyboard.h"
 
 #define PIC_M_CTRL 0x20
 #define PIC_M_DATA 0x21
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
 
-#define IDT_DESC_CNT 0x21
+#define IDT_DESC_CNT 0x32
 
 typedef uintptr_t intr_handler;
 
@@ -46,11 +48,16 @@ void general_intr_handler(uint8_t vecno)
         kprintf("page fault vaddr is 0x%x\n", page_fault_vaddr);
         while (1)
             ;
-    }
-    else if (vecno == 32) {
-        kprintf("timer interrupt: %d\n", ticks);
+    } else if (vecno == 32) {
+        //kprintf("timer interrupt: %d\n", ticks);
         timer_intr_handler();
-    }
+    } else if (vecno == 46 || vecno == 47) {
+		//kprintf("disk interrupt occurred\n");
+		hd_intr_handler(vecno);
+	} else if (vecno == 33) {
+		kprintf("keyboard interrupt occurred\n");
+		keyboard_intr_handler();
+	}
 }
 
 static void idt_desc_init()
@@ -84,6 +91,10 @@ static void pic_init()
     // only enable clock interrupt now
     outb(PIC_M_DATA, 0xfe);
     outb(PIC_S_DATA, 0xff);
+
+	// enable keyboard interrupt
+	outb(PIC_M_DATA, 0xfd);
+	outb(PIC_S_DATA, 0xff);
 
     // enable disk interrupt now
     outb(PIC_M_DATA, 0xf8);
