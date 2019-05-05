@@ -6,6 +6,7 @@
 
 #define GDT_TI 0
 
+// GDT for kernel
 #define SELECTOR_KERNEL_CODE ((0x1 << 3) + (GDT_TI << 2) + RPL0)
 #define SELECTOR_KERNEL_DATA ((0x2 << 3) + (GDT_TI << 2) + RPL0)
 #define SELECTOR_KERNEL_STACK SELECTOR_KERNEL_DATA
