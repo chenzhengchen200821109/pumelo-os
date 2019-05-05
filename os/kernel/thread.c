@@ -86,6 +86,8 @@ void schedule()
     thread_tag = list_pop(&thread_ready_list);
     struct thread_struct* next = to_struct(thread_tag, struct thread_struct, general_tag);
     next->status = TASK_RUNNING;
+	//
+	process_activate(next);
     switch_to(&cur->context, &next->context);
 }
 

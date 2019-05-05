@@ -169,12 +169,12 @@ static void remove_virtual_pages(enum pool_flags pf, void* _vaddr, uint32_t pg_c
 			cnt++;
 		}
 	} else {  // user space
-		//struct thread_struct* cur_thread = running_thread();
-		//bit_idx_start = (vaddr - cur_thread->userprog_vaddr.vaddr_start) / PAGE_SIZE;
-		//while (cnt < pg_cnt) {
-		//	bitmap_set(&cur_thread->userprog_vaddr.vaddr_bitmap, bit_idx_start + cnt, 0);
-		//	cnt++;
-		//}
+		struct thread_struct* cur_thread = running_thread();
+		bit_idx_start = (vaddr - cur_thread->userprog_vaddr.vaddr_start) / PAGE_SIZE;
+		while (cnt < pg_cnt) {
+			bitmap_set(&cur_thread->userprog_vaddr.vaddr_bitmap, bit_idx_start + cnt, 0);
+			cnt++;
+		}
 	}
 }
 
@@ -213,10 +213,10 @@ void* sys_malloc(uint32_t size)
 		mem_pool = &kernel_pool;
 		desc = k_block_descs;
 	} else {
-		//PF = PF_USER;
-		//pool_size = user_pool.pool_size;
-		//mem_pool = &user_pool;
-		//descs = cur_thread->u_block_descs;
+		PF = PF_USER;
+		pool_size = user_pool.pool_size;
+		mem_pool = &user_pool;
+		descs = cur_thread->u_block_descs;
 	}
 
 	if (!(size > 0 && size < pool_size))
@@ -400,6 +400,8 @@ void mem_init()
     uint32_t mem_bytes_total = (*(uint32_t *)(0xd00));
     mem_pool_init(mem_bytes_total);
 	block_desc_init(k_block_descs);
+	lock_init(&kernel_pool.lk);
+	lock_init(&user_pool.lk);
     kprintf("mem_init done\n");
 }
 

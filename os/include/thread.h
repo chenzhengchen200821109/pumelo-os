@@ -3,6 +3,7 @@
 
 #include "defs.h"
 #include "list.h"
+#include "mem.h"
 
 typedef void thread_func(void *);
 
@@ -88,6 +89,8 @@ struct thread_struct
     struct list_entry all_list_tag;
     uint32_t* pgdir;
     char name[16];
+	//
+	struct virtual_addr userprog_vaddr;
     uint32_t stack_magic;
 };
 
