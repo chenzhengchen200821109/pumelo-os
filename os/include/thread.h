@@ -5,6 +5,8 @@
 #include "list.h"
 #include "mem.h"
 
+#define MAX_FILES_OPEN_PER_PROC 8
+
 typedef void thread_func(void *);
 
 enum task_status
@@ -85,6 +87,7 @@ struct thread_struct
     uint8_t priority;
     uint8_t ticks;
     uint32_t elapsed_ticks;
+	int32_t fd_table[MAX_FILES_OPEN_PER_PROC];
     struct list_entry general_tag;  // thread_ready_list
     struct list_entry all_list_tag;
     uint32_t* pgdir;

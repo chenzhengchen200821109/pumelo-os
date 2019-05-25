@@ -38,6 +38,15 @@ static void Thread_init(struct thread_struct* pthread, const char* name, int pri
     pthread->elapsed_ticks = 0;
     pthread->pgdir = NULL;
     pthread->stack_magic = 0x19870916;
+
+	pthread->fd_table[0] = 0;
+	pthread->fd_table[1] = 1;
+	pthread->fd_table[1] = 2;
+	uint8_t fd_idx = 3;
+	while (fd_idx < MAX_FILE_OPEN_PER_PROC) {
+		pthread->fd_table[fd_idx] = -1;
+		fd_idx++;
+	}
 }
 
 static void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_arg)
