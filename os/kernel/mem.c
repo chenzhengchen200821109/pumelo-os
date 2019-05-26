@@ -100,6 +100,16 @@ static void* get_virtual_pages(enum pool_flags pf, uint32_t pg_cnt)
         vaddr_start = kernel_vaddr.vaddr_start + bit_idx_start * PAGE_SIZE;
     } else {
         // for user space
+        struct thread_struct *cur = running_thread();
+        bit_idx_start = bitmap_scan(&cur->userprog_vaddr.vaddr_bitmap, pg_cnt);
+        if (bit_idx_start == -1)
+            return NULL;
+        while (cnt < pg_cnt) {
+            bitmap_set(&cur->userprog_vaddr.vaddr_bitmap, bit_idx_start + cnt, 1);
+            cnt++;
+        }
+        vaddr_start = cur->userprog_vaddr.vaddr_start + bit_idx_start * PAGE_SIZE;
+        assert((uint32_t)vaddr_start < (0xc0000000 - PAGE_SIZE));
     }
     return (void *)vaddr_start;
 }

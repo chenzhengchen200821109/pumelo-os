@@ -92,7 +92,7 @@ struct thread_struct
     struct list_entry all_list_tag;
     uint32_t* pgdir;
     char name[16];
-	//
+	// for user processes
 	struct virtual_addr userprog_vaddr;
     uint32_t stack_magic;
 };
