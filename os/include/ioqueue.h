@@ -9,8 +9,8 @@
 struct ioqueue
 {
 	struct lock lock;
-	struct task_struct* product;
-	struct task_struct* consumer;
+	struct thread_struct* producer;
+	struct thread_struct* consumer;
 	char buf[BUF_SIZE];
 	int32_t head;
 	int32_t tail;

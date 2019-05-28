@@ -57,7 +57,9 @@ void general_intr_handler(uint8_t vecno)
 	} else if (vecno == 33) {
 		kprintf("keyboard interrupt occurred\n");
 		keyboard_intr_handler();
-	}
+	} else {
+        //kprintf("unknown\n");
+    }
 }
 
 static void idt_desc_init()
@@ -93,12 +95,12 @@ static void pic_init()
     outb(PIC_S_DATA, 0xff);
 
 	// enable keyboard interrupt
-	outb(PIC_M_DATA, 0xfd);
+	outb(PIC_M_DATA, 0xfc);
 	outb(PIC_S_DATA, 0xff);
 
     // enable disk interrupt now
-    outb(PIC_M_DATA, 0xf8);
-    outb(PIC_S_DATA, 0xbf);
+    //outb(PIC_M_DATA, 0xf8);
+    //outb(PIC_S_DATA, 0xbf);
 
     kputs("pic_init done");
 }

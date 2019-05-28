@@ -94,11 +94,14 @@ struct thread_struct
     char name[16];
 	// for user processes
 	struct virtual_addr userprog_vaddr;
+    struct mem_block_desc u_block_desc[DESC_CNT];
     uint32_t stack_magic;
 };
 
 struct thread_struct* running_thread();
 void schedule();
+void Thread_init(struct thread_struct*, const char*, int);
+void Thread_create(struct thread_struct*, thread_func*, void*);
 struct thread_struct* thread_start(char* name, int prio, thread_func* func, void* func_arg);
 void thread_block(enum task_status stat);
 void thread_unblock(struct thread_struct* pthread);

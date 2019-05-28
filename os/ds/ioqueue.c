@@ -1,9 +1,11 @@
 #include "ioqueue.h"
+#include "intr.h"
+#include "assert.h"
 
 void ioqueue_init(struct ioqueue* ioq)
 {
 	lock_init(&ioq->lock);
-	ioq->product = ioq->consumer = NULL;
+	ioq->producer = ioq->consumer = NULL;
 	ioq->head = ioq->tail = 0;
 }
 
@@ -24,14 +26,14 @@ bool ioqueue_full(struct ioqueue* ioq)
 	return next_pos(ioq->head) == ioq->tail;
 }
 
-static void ioqueue_wait(struct task_struct** waiter)
+static void ioqueue_wait(struct thread_struct** waiter)
 {
 	assert(*waiter == NULL && waiter != NULL);
 	*waiter = running_thread();
 	thread_block(TASK_BLOCKED);
 }
 
-static void ioqueue_wakeup(struct task_struct** waiter)
+static void ioqueue_wakeup(struct thread_struct** waiter)
 {
 	assert(*waiter != NULL);
 	thread_unblock(*waiter);
@@ -48,7 +50,7 @@ char ioqueue_getchar(struct ioqueue* ioq)
 	}
 	char c = ioq->buf[ioq->tail];
 	ioq->tail = next_pos(ioq->tail);
-	if (ioq->product != NULL) {
+	if (ioq->producer != NULL) {
 		ioqueue_wakeup(&ioq->producer);
 	}
 	return c;

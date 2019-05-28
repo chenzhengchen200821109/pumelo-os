@@ -264,32 +264,49 @@ each_segment:
 .PT_NULL:
     ret
 
-.section .data
-.global TOTAL_MEM_BYTES
-TOTAL_MEM_BYTES:
+.section .data                           /* 0xc0000d00 */
+.global TOTAL_MEM_BYTES 
+.global GDT_DESC
+TOTAL_MEM_BYTES:                         /* 0xc0000d00 */
     .long 0
-GDT_BASE:
-    .word 0, 0
+    .long 0
+GDT_BASE:                                /* 0xc0000d08 */
+    .word 0, 0                         
     .byte 0, 0, 0, 0
-CODE_DESC:
-    .word DESC_CODE_WORD0
+CODE_DESC:                               /* 0xc0000d10 */
+    .word DESC_CODE_WORD0                
     .word DESC_CODE_WORD1
     .word DESC_CODE_WORD2
     .word DESC_CODE_WORD3
-DATA_STACK_DESC:
+DATA_STACK_DESC:                         /* 0xc0000d18 */    
     .word DESC_DATA_WORD0
     .word DESC_DATA_WORD1
     .word DESC_DATA_WORD2
     .word DESC_DATA_WORD3
-VIDEO_DESC:
+VIDEO_DESC:                              /* 0xc0000d20 */
     .word DESC_VIDEO_WORD0
     .word DESC_VIDEO_WORD1
     .word DESC_VIDEO_WORD2
     .word DESC_VIDEO_WORD3
-GDT_END:
+TSS_DESC:                                /* 0xc0000d28 */
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+USER_CODE_DESC:                          /* 0xc0000d30 */
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+USER_DATA_DESC:                          /* 0xc0000d38 */
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+GDT_END:                                 /* 0xc0000d40 */
     .equ GDT_SIZE, (GDT_END - GDT_BASE)
     .equ GDT_LIMIT, (GDT_SIZE - 0x1)
-GDT_DESC:
+GDT_DESC:                                /* 0xc0000d48 */
     .word GDT_LIMIT
     .long GDT_BASE
 //.global TOTAL_MEM_BYTES

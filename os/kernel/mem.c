@@ -68,6 +68,7 @@ static void mem_pool_init(uint32_t all_mem)
     bitmap_init(&kernel_vaddr.vaddr_bitmap);
 	
 	lock_init(&kernel_pool.lk);
+    lock_init(&user_pool.lk);
     kprintf("mem_pool_init done\n");
 
 }
@@ -188,6 +189,7 @@ static void remove_virtual_pages(enum pool_flags pf, void* _vaddr, uint32_t pg_c
 	}
 }
 
+/* virtual address converted into physical address */
 uint32_t addr_v2p(uint32_t vaddr)
 {
 	uint32_t* pte = pte_addr(vaddr);
@@ -226,7 +228,7 @@ void* sys_malloc(uint32_t size)
 		PF = PF_USER;
 		pool_size = user_pool.pool_size;
 		mem_pool = &user_pool;
-		descs = cur_thread->u_block_descs;
+		desc = cur_thread->u_block_desc;
 	}
 
 	if (!(size > 0 && size < pool_size))
@@ -402,6 +404,42 @@ void* get_kernel_pages(uint32_t pg_cnt)
     if (vaddr != NULL)
         memset(vaddr, 0, pg_cnt * PAGE_SIZE);
     return vaddr;
+}
+
+void* get_user_pages(uint32_t pg_cnt)
+{
+    lock_acquire(&user_pool.lk);
+    void* vaddr = malloc_pages(PF_USER, pg_cnt);
+    memset(vaddr, 0, pg_cnt * PAGE_SIZE);
+    lock_release(&user_pool.lk);
+    return vaddr;
+}
+
+void* get_a_page(enum pool_flags pf, uint32_t vaddr)
+{
+    struct pool *mem_pool= pf & PF_KERNEL ? &kernel_pool : &user_pool;
+    lock_acquire(&mem_pool->lk);
+
+    struct thread_struct *cur = running_thread();
+    int32_t bit_idx = -1;
+
+    if (cur->pgdir != NULL && pf == PF_USER) {
+        bit_idx = (vaddr - cur->userprog_vaddr.vaddr_start) / PAGE_SIZE;
+        assert(bit_idx > 0);
+        bitmap_set(&cur->userprog_vaddr.vaddr_bitmap, bit_idx, 1);
+    } else if (cur->pgdir == NULL & pf == PF_KERNEL) {
+        bit_idx = (vaddr - kernel_vaddr.vaddr_start) / PAGE_SIZE;
+        assert(bit_idx > 0);
+        bitmap_set(&kernel_vaddr.vaddr_bitmap, bit_idx, 1);
+    } else {
+        panic("get_a_page: not allow kernel alloc userspace or user alloc kernelspac by get_a_page");
+    }
+    void* page_phyaddr = alloc_physical_pages(mem_pool);
+    if (page_phyaddr == NULL)
+        return NULL;
+    insert_page_table((void *)vaddr, page_phyaddr);
+    lock_release(&mem_pool->lk);
+    return (void *)vaddr;
 }
 
 void mem_init()

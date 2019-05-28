@@ -1,5 +1,7 @@
 #include "tss.h"
-#include "thread.h"
+#include "mmu.h"
+#include "string.h"
+#include "memlayout.h"
 
 struct tss
 {
@@ -32,11 +34,13 @@ struct tss
 	uint32_t io_base;
 };
 
+#define PAGE_SIZE 4096
+
 static struct tss tss;
 
 void update_tss_esp(struct thread_struct* pthread)
 {
-	tss.esp0 = (uint32_t *)((uint32_t)pthread + PG_SIZE);
+	tss.esp0 = (uint32_t *)((uint32_t)pthread + PAGE_SIZE);
 }
 
 static struct gdt_desc make_gdt_desc(uint32_t* desc_addr, uint32_t limit, uint8_t attr_low, uint8_t attr_high)
@@ -57,17 +61,17 @@ void tss_init()
 	kprintf("tss_init start\n");
 	uint32_t tss_size = sizeof(tss);
 	memset(&tss, 0, tss_size);
-	tss.ss0 = SELECTOR_K_STACK;
+	tss.ss0 = SELECTOR_KERNEL_STACK;
 	tss.io_base = tss_size;
 
 	/*
 	 * gdt segment base address is 0x900.
 	 */
-	((struct gdt_desc *)0xc0000920) = make_gdt_desc((uint32_t *)&tss, tss_size - 1, TSS_ATTR_LOW, TSS_ATTR_HIGH);
-	((struct gdt_desc *)0xc0000928) = make_gdt_desc((uint32_t *)0, 0xfffff, GDT_CODE_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
-	((struct gdt_desc *)0xc0000930) = make_gdt_desc((uint32_t *)0, 0xfffff, GDT_DATA_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
+	*((struct gdt_desc *)0xc0000d28) = make_gdt_desc((uint32_t *)&tss, tss_size - 1, TSS_ATTR_LOW, TSS_ATTR_HIGH);
+	*((struct gdt_desc *)0xc0000d30) = make_gdt_desc((uint32_t *)0, 0xfffff, GDT_CODE_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
+	*((struct gdt_desc *)0xc0000d38) = make_gdt_desc((uint32_t *)0, 0xfffff, GDT_DATA_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
 
-	uint64_t gdt_operand = ((8 * 7 - 1) | ((uint64_t)(uint32_t)0xc0000900 << 16));
+	uint64_t gdt_operand = ((8 * 7 - 1) | ((uint64_t)(uint32_t)0xc0000d08 << 16));
 	asm volatile ("lgdt %0" : : "m" (gdt_operand));
 	asm volatile ("ltr %w0" : : "r" (SELECTOR_TSS));
 	kprintf("tss_init and ltr done\n");

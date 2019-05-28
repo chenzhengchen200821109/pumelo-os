@@ -4,6 +4,7 @@
 #include "defs.h"
 
 #define MAX_FILE_NAME_LEN  16
+#define MAX_FILE_OPEN_PER_PROC 32
 //#define MAX_FILES_PER_PART 4096
 //#define BITS_PER_SECTOR    4096
 //#define SECTOR_SIZE        512

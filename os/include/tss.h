@@ -2,6 +2,8 @@
 #define _TSS_H
 
 #include "defs.h"
+#include "kernel.h"
+#include "thread.h"
 
 // GDT
 #define DESC_G_4K  1
@@ -73,6 +75,7 @@ struct gdt_desc
 };
 
 void update_tss_esp(struct thread_struct* pthread);
+void tss_init();
 
 
 #endif

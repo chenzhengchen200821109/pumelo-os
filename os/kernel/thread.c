@@ -6,6 +6,7 @@
 #include "defs.h"
 #include "mem.h"
 #include "stdio.h"
+#include "fs.h"
 
 #define PAGE_SIZE 4096
 
@@ -22,7 +23,7 @@ static void kernel_thread_entry(thread_func* func, void* func_arg)
     func(func_arg);
 }
 
-static void Thread_init(struct thread_struct* pthread, const char* name, int prio)
+void Thread_init(struct thread_struct* pthread, const char* name, int prio)
 {
     memset(pthread, 0, sizeof(*pthread));
     strcpy(pthread->name, name);
@@ -49,7 +50,7 @@ static void Thread_init(struct thread_struct* pthread, const char* name, int pri
 	}
 }
 
-static void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_arg)
+void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_arg)
 {
     char* sp = pthread->self_kstack;
 

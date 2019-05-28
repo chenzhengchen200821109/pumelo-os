@@ -7,9 +7,9 @@
 #define SEG_KTEXT       1
 #define SEG_KDATA       2
 #define SEG_VIDEO_KDATA 3
-#define SEG_UTEXT       4
-#define SEG_UDATA       5
-#define SEG_TSS         6
+#define SEG_TSS         4
+#define SEG_UTEXT       5
+#define SEG_UDATA       6
 
 /* global descriptor numbers */
 #define GD_KTEXT       ((SEG_KTEXT) << 3)        // kernel text

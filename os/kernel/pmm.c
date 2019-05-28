@@ -26,7 +26,7 @@
  * mode, the x86 CPU will look in the TSS for SS0 and ESP0 and load their value
  * into SS and ESP respectively.
  * */
-static struct taskstate ts = {0};
+//static struct taskstate ts = {0};
 
 /* *
  * Global Descriptor Table:
@@ -37,21 +37,21 @@ static struct taskstate ts = {0};
  *   - 0x0 :  unused (always faults -- for trapping NULL far pointers)
  *   - 0x8 :  kernel code segment
  *   - 0x10:  kernel data segment
- *   - 0x18:  user code segment
- *   - 0x20:  user data segment
- *   - 0x28:  defined for tss, initialized in gdt_init
+ *   - 0x18:  defined for tss
+ *   - 0x20:  user code segment
+ *   - 0x28:  user data segment
  * */
-static struct segdesc gdt[] = {
+struct segdesc gdt[] = {
     [0] = SEG_NULL,
     [SEG_KTEXT] = SEG(STA_X | STA_R, 0x0, 0xFFFFFFFF, DPL_KERNEL),
     [SEG_KDATA] = SEG(STA_W, 0x0, 0xFFFFFFFF, DPL_KERNEL),
     [SEG_VIDEO_KDATA] = SEG(STA_W, 0xb8000, 0x7fff, DPL_KERNEL),
-    //[SEG_UTEXT] = SEG(STA_X | STA_R, 0x0, 0xFFFFFFFF, DPL_USER),
-    //[SEG_UDATA] = SEG(STA_W, 0x0, 0xFFFFFFFF, DPL_USER),
-    //[SEG_TSS]    = SEG_NULL,
+    [SEG_TSS] = SEG_NULL,
+    [SEG_UTEXT] = SEG(STA_X | STA_R, 0x0, 0xFFFFFFFF, DPL_USER),
+    [SEG_UDATA] = SEG(STA_W, 0x0, 0xFFFFFFFF, DPL_USER),
 };
 
-static struct pseudodesc gdt_pd = {
+struct pseudodesc gdt_pd = {
     sizeof(gdt) - 1, (uint32_t)gdt
 };
 
