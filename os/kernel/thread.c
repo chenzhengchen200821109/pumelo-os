@@ -17,7 +17,6 @@ static struct list_entry* thread_tag;
 struct thread_struct* idle_thread;
 
 extern void switch_to(struct thread_context* from, struct thread_context* to);
-//extern void switch_to(struct thread_struct* from, struct thread_struct* to);
 
 static void kernel_thread_entry(thread_func* func, void* func_arg)
 {
@@ -58,7 +57,6 @@ void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_
     char* sp = pthread->self_kstack;
     sp = sp - sizeof(struct trapframe);
     pthread->tf = (struct trapframe *)sp;
-    //sp = (char *)((unsigned long)sp & ~16L);
     sp = sp - sizeof(struct thread_parameter);
     struct thread_parameter* param = (struct thread_parameter *)sp;
     param->function = func;
@@ -68,15 +66,6 @@ void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_
     //kprintf("sp address is 0x%x\n", pthread->self_kstack);
     pthread->context.eip = (void *)kernel_thread_entry;
     pthread->context.esp = (void *)sp;
-
-    //
-    //pthread->self_kstack -= sizeof(struct trapframe);
-    //pthread->self_kstack -= sizeof(struct thread_context);
-    //struct thread_context *kthread_context = (struct thread_context *)pthread->self_kstack;
-    //kthread_context->eip = kernel_thread_entry;
-    //kthread_context->func = func;
-    //kthread_context->func_arg = func_arg;
-    //kthread_context->ebp = kthread_context->ebx = kthread_context->esi = kthread_context->edi = 0;
 }
 
 /*
@@ -170,8 +159,6 @@ static void Make_Main_Thread()
     assert(!list_find(&thread_list_all, &main_thread->all_list_tag));
     list_append(&thread_list_all, &main_thread->all_list_tag);
 }
-
-//struct thread_struct* ide_thread;
 
 static void idle(void* arg)
 {

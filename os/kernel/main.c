@@ -1,19 +1,3 @@
-//#include "console.h"
-//#include "intr.h"
-//#include "clock.h"
-//#include "stdio.h"
-//#include "pmm.h"
-//#include "mem.h"
-//#include "interrupt.h"
-//#include "thread.h"
-//#include "ide.h"
-//#include "fs.h"
-//#include "proc.h"
-//#include "keyboard.h"
-//#include "proc.h"
-//#include "tss.h"
-//#include "ioqueue.h"
-
 #include "init.h"
 #include "stdio.h"
 
@@ -28,14 +12,6 @@ int test_var_a = 0, test_var_b = 0;
 int main(void)
 {
     init_all();
-    // console initialization
-    //cons_init();
-    //mem_init();
-    //clock_init();
-    //kthread_init();
-    //keyboard_init();
-    //idt_init();
-    //tss_init();
     
     thread_start("kthread_a", 31, kthread_a, "argA");
     thread_start("kthread_b", 31, kthread_b, "argB");
@@ -50,46 +26,21 @@ int main(void)
 
     while (1) {
 		kprintf("Main ");
-		//thread_block(TASK_BLOCKED);
-		//thread_yield();
     }
     return 0;
 }
 
 void kthread_a(void* arg) 
 {
-	//void* addr = sys_malloc(512);
-	//void* addr1 = sys_malloc(512);
     while (1) {
-		//kprintf_lock("%s ", para);
-		//kprintf_lock("addr is 0x%x\n", addr);
-		//kprintf_lock("addr1 is 0x%x\n", addr);
         kprintf_lock("v_a: %d ", test_var_a);
-        //enum intr_status old_status = intr_disable();
-        //if (!ioqueue_empty(&kbd_buf)) {
-        //    kputs(para);
-        //    char byte = ioqueue_getchar(&kbd_buf);
-        //    kputchar(byte);
-        //}
-        //set_intr_status(old_status);
     }
 }
 
 void kthread_b(void* arg)
 {
-    //char* para = (char *)arg;
-	//void* addr = sys_malloc(63);
     while (1) {
-    	//kprintf_lock("%s ", para);
-		//kprintf_lock("addr is 0x%x\n", addr);
         kprintf_lock("v_b: %d ", test_var_b);
-        //enum intr_status old_status = intr_disable();
-        //if (!ioqueue_empty(&kbd_buf)) {
-        //    kputs(para);
-        //    char byte = ioqueue_getchar(&kbd_buf);
-        //    kputchar(byte);
-        //}
-        //set_intr_status(old_status);
     }
 }
 
