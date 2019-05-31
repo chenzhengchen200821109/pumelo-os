@@ -35,7 +35,6 @@ struct pseudodesc {
     uint32_t pd_base;        // Base address
 } __attribute__ ((packed));
 
-static inline void lidt(struct pseudodesc *pd) __attribute__((always_inline));
 static inline void sti(void) __attribute__((always_inline));
 static inline void cli(void) __attribute__((always_inline));
 static inline void ltr(uint16_t sel) __attribute__((always_inline));
@@ -96,11 +95,6 @@ outsl(uint32_t port, const void* addr, int cnt) {
 		: "=S" (addr), "=c" (cnt)
 		: "d" (port), "0" (addr), "1" (cnt)
 		: "memory", "cc");
-}
-
-static inline void
-lidt(struct pseudodesc *pd) {
-    asm volatile ("lidt (%0)" :: "r" (pd));
 }
 
 // enable interrupts

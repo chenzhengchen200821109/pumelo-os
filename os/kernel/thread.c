@@ -17,6 +17,7 @@ static struct list_entry* thread_tag;
 struct thread_struct* idle_thread;
 
 extern void switch_to(struct thread_context* from, struct thread_context* to);
+//extern void switch_to(struct thread_struct* from, struct thread_struct* to);
 
 static void kernel_thread_entry(thread_func* func, void* func_arg)
 {
@@ -33,6 +34,7 @@ void Thread_init(struct thread_struct* pthread, const char* name, int prio)
     else
         pthread->status = TASK_READY;
 
+    /* thread's kernel stack */
     pthread->self_kstack = (char *)((char *)pthread + PAGE_SIZE);
     pthread->priority = prio;
     pthread->ticks = prio;
@@ -40,6 +42,7 @@ void Thread_init(struct thread_struct* pthread, const char* name, int prio)
     pthread->pgdir = NULL;
     pthread->stack_magic = 0x19870916;
 
+    /* file system */
 	pthread->fd_table[0] = 0;
 	pthread->fd_table[1] = 1;
 	pthread->fd_table[1] = 2;
@@ -53,10 +56,9 @@ void Thread_init(struct thread_struct* pthread, const char* name, int prio)
 void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_arg)
 {
     char* sp = pthread->self_kstack;
-
     sp = sp - sizeof(struct trapframe);
-
-    sp = (char *)((unsigned long)sp & ~16L);
+    pthread->tf = (struct trapframe *)sp;
+    //sp = (char *)((unsigned long)sp & ~16L);
     sp = sp - sizeof(struct thread_parameter);
     struct thread_parameter* param = (struct thread_parameter *)sp;
     param->function = func;
@@ -66,17 +68,25 @@ void Thread_create(struct thread_struct* pthread, thread_func* func, void* func_
     //kprintf("sp address is 0x%x\n", pthread->self_kstack);
     pthread->context.eip = (void *)kernel_thread_entry;
     pthread->context.esp = (void *)sp;
+
+    //
+    //pthread->self_kstack -= sizeof(struct trapframe);
+    //pthread->self_kstack -= sizeof(struct thread_context);
+    //struct thread_context *kthread_context = (struct thread_context *)pthread->self_kstack;
+    //kthread_context->eip = kernel_thread_entry;
+    //kthread_context->func = func;
+    //kthread_context->func_arg = func_arg;
+    //kthread_context->ebp = kthread_context->ebx = kthread_context->esi = kthread_context->edi = 0;
 }
 
+/*
+ * schedule() invoked by timer_intr_handler().
+ */
 void schedule()
 {
     assert(get_intr_status() == INTR_OFF);
 
     struct thread_struct* cur = running_thread();
-
-	//if (list_empty(&(thread_ready_list))) {
-	//	thread_unblock(idle_thread);
-	//}
 
     if (cur->status == TASK_RUNNING) {
         assert(!list_find(&thread_ready_list, &cur->general_tag));
@@ -99,6 +109,7 @@ void schedule()
 	//
 	process_activate(next);
     switch_to(&cur->context, &next->context);
+    //switch_to(cur, next);
 }
 
 struct thread_struct* running_thread()

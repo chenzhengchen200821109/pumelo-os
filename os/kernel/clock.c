@@ -42,8 +42,9 @@ void timer_intr_handler()
     assert(cur_thread->stack_magic == 0x19870916);
     cur_thread->elapsed_ticks++;
     ticks++;
-    if (cur_thread->ticks == 0)
+    if (cur_thread->ticks == 0) {
         schedule();
+    }
     else
         cur_thread->ticks--;
 }

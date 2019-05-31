@@ -2,7 +2,6 @@
 #include "x86.h"
 #include "console.h"
 #include "string.h"
-
 #include "sync.h"
 
 #define VGA_BUF 0xc00b8000

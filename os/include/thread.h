@@ -19,6 +19,7 @@ enum task_status
     TASK_DIED
 };
 
+/* interrupt stack */
 struct trapframe
 {
     uint32_t vecno;
@@ -72,6 +73,7 @@ struct thread_context
     //uint32_t edi;
     //uint32_t esi;
     //void (*eip)(thread_func* func, void* func_arg);
+    //void (*unused_retaddr);
     //thread_func* func;
     //void* func_arg;
 };

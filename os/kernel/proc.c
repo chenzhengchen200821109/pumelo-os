@@ -19,8 +19,12 @@ void process_start(void* filename)
 {
 	void* function = filename;
 	struct thread_struct* cur = running_thread();
-	cur->self_kstack += sizeof(struct thread_struct);
-	struct trapframe* proc_stack = (struct trapframe *)cur->self_kstack;
+    //char* sp = (char *)cur + PAGE_SIZE;
+    //sp = sp - sizeof(struct trapframe);
+    //struct trapframe* proc_stack = (struct trapframe *)sp;
+	//cur->self_kstack += sizeof(struct thread_context);
+	//struct trapframe* proc_stack = (struct trapframe *)cur->self_kstack;
+    struct trapframe* proc_stack = cur->tf;
 	proc_stack->edi = proc_stack->esi = proc_stack->ebp = proc_stack->esp_dummy = 0;
 	proc_stack->ebx = proc_stack->edx = proc_stack->ecx = proc_stack->eax = 0;
 	proc_stack->gs = 0;
@@ -35,10 +39,13 @@ void process_start(void* filename)
 
 void page_dir_activate(struct thread_struct* pthread)
 {
-	uint32_t pagedir_phy_addr = 0x100000;
+	uint32_t pagedir_phy_addr;
+
 	if (pthread->pgdir != NULL) {
 		pagedir_phy_addr = addr_v2p((uint32_t)pthread->pgdir);
-	}
+	} else {
+        pagedir_phy_addr = 0x100000;
+    }
 	asm volatile ("movl %0, %%cr3" : : "r" (pagedir_phy_addr) : "memory");
 }
 

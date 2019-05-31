@@ -132,11 +132,11 @@ p_mode_start:
     /* manipulate graphic memory directly */
     movl $0x1a, %ecx
     movl $0xb8000, %edi
-    movl $320, %ebx
+    movl $320, %ebx                                /* 3th line */
     movl $0x0, %esi
 display0:
     movb promesg(, %esi, 0x1), %al
-    movb $0x2, %ah
+    movb $0x2, %ah                                /* black background and green character */
     movw %ax, (%edi, %ebx, 0x1)
     addl $0x2, %ebx
     addl $0x1, %esi
@@ -169,13 +169,13 @@ display0:
     /* manipulate graphic memory directly */
     movl $0x1b, %ecx
     movl $0xc00b8000, %edi
-    movl $480, %ebx
+    movl $480, %ebx           /* 4th line */
     movl $0x0, %esi
 display1:
     movb virmesg(, %esi, 0x1), %al
     movb $0x2, %ah
     movw %ax, (%edi, %ebx, 0x1)
-    addl $0x2, %ebx
+    addl $0x2, %ebx           /* */
     addl $0x1, %esi
     loop display1
 
@@ -222,7 +222,7 @@ setup_page:
     movl $256, %ecx
     movl $0x0, %esi
     movl $0x0, %edx
-    movl $(PG_US_U | PG_RW_R | PG_P), %edx
+    movl $(PG_US_U | PG_RW_W | PG_P), %edx
 .create_pte:
     movl %edx, (%ebx, %esi, 0x4)
     addl $0x1000, %edx

@@ -28,6 +28,17 @@ struct intr_descriptor
 static struct intr_descriptor idt[IDT_DESC_CNT];
 extern intr_handler intr_entry_table[IDT_DESC_CNT];
 
+static void lidt(struct intr_descriptor *p, int size)
+{
+    volatile uint16_t pd[3];
+
+    pd[0] = size - 1;
+    pd[1] = (uint32_t)p;
+    pd[2] = (uint32_t)p >> 16;
+
+    asm volatile ("lidt (%0)" : : "r"(pd));
+}
+
 static void make_intr_descriptor(struct intr_descriptor* pdesc, uint8_t attr, intr_handler func)
 {
     pdesc->offset_low = (uint32_t)func & 0x0000ffff;
@@ -41,9 +52,9 @@ void general_intr_handler(uint8_t vecno)
 {
     if (vecno == 0x27 || vecno == 0x2f)
         return;
-    //kprintf("int vector no : %d\n", vecno);
     if (vecno == 14) { // page fault
         int page_fault_vaddr = 0;
+        /* cr2 saved the linear address which caused page fault */
         asm volatile ("movl %%cr2, %0" : "=r" (page_fault_vaddr));
         kprintf("page fault vaddr is 0x%x\n", page_fault_vaddr);
         while (1)
@@ -58,26 +69,23 @@ void general_intr_handler(uint8_t vecno)
 		kprintf("keyboard interrupt occurred\n");
 		keyboard_intr_handler();
 	} else {
-        //kprintf("unknown\n");
+        kprintf("int vector no: %d\n", vecno);
     }
 }
 
 static void idt_desc_init()
 {
+    kprintf("idt_desc_init start\n");
     int i;
     for (i = 0; i < IDT_DESC_CNT; i++)
         make_intr_descriptor(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
-    kputs("idt_desc_init done");
+    kprintf("idt_desc_init done\n");
 }
-
-//void register_handler(uint8_t vecno, intr_handler function)
-//{
-//    make_intr_descriptor(&idt[vecno], IDT_DESC_ATTR_DPL0, function);
-//}
 
 /* 8259A */
 static void pic_init()
 {
+    kprintf("pic_init start\n");
     outb(PIC_M_CTRL, 0x11);
     outb(PIC_M_DATA, 0x20);
 
@@ -94,26 +102,25 @@ static void pic_init()
     outb(PIC_M_DATA, 0xfe);
     outb(PIC_S_DATA, 0xff);
 
-	// enable keyboard interrupt
+	// enable clock and keyboard interrupt
 	outb(PIC_M_DATA, 0xfc);
 	outb(PIC_S_DATA, 0xff);
 
     // enable disk interrupt now
-    //outb(PIC_M_DATA, 0xf8);
-    //outb(PIC_S_DATA, 0xbf);
+    outb(PIC_M_DATA, 0xf8);
+    outb(PIC_S_DATA, 0xbf);
 
-    kputs("pic_init done");
+    kprintf("pic_init done");
 }
 
 void idt_init()
 {
-    kputs("idt_init start");
+    kprintf("idt_init start\n");
     idt_desc_init();
     pic_init(); 
 
     /* load idt */
-    uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16)));
-    asm volatile ("lidt %0" : : "m"(idt_operand));
+    lidt(idt, sizeof(idt));
 
-    kputs("idt_init done");
+    kprintf("idt_init done\n");
 }

@@ -16,7 +16,7 @@
 #define USER_VADDR_START 0x8048000
 #define USER_STACK3_VADDR (0xc0000000 - 0x1000)
 
-#define DEFAULT_PRIO 30
+#define DEFAULT_PRIO 31
 
 //struct task_struct
 //{
