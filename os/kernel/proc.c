@@ -19,11 +19,6 @@ void process_start(void* filename)
 {
 	void* function = filename;
 	struct thread_struct* cur = running_thread();
-    //char* sp = (char *)cur + PAGE_SIZE;
-    //sp = sp - sizeof(struct trapframe);
-    //struct trapframe* proc_stack = (struct trapframe *)sp;
-	//cur->self_kstack += sizeof(struct thread_context);
-	//struct trapframe* proc_stack = (struct trapframe *)cur->self_kstack;
     struct trapframe* proc_stack = cur->tf;
 	proc_stack->edi = proc_stack->esi = proc_stack->ebp = proc_stack->esp_dummy = 0;
 	proc_stack->ebx = proc_stack->edx = proc_stack->ecx = proc_stack->eax = 0;
