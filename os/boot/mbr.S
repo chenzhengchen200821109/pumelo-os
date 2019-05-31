@@ -68,8 +68,8 @@ start:
     call rd_disk_m_16
 
     /* load OS kernel */
-    movl $KERNEL_START_SECTOR, %eax   /* kernel is at sector number 0xa */
-    movw $0x7000, %bx
+    movl $KERNEL_START_SECTOR, %eax   /* kernel file is at sector number 0xa */
+    movw $0x7000, %bx                 /* kernel file is at 0x70000 */
     movw %bx, %ds
     movw $0x0, %bx
     movw $127, %cx                    /* number of sectors to read */
