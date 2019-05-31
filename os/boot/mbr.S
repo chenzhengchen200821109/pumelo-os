@@ -4,6 +4,22 @@
 
 # start address should be 0:7c00, in real mode, the beginning address of the 
 # running mbr.
+#
+#                    Memory Layout in Real Mode (1MB)
+#  ------------------------------------------------------
+#  start    end    size            purpose             
+#  ------------------------------------------------------
+#  F0000   FFFFF   64KB    BIOS code 
+#  C8000   EFFFF   160KB   I/O
+#  A0000   C7FFF   160KB   Vedio memory
+#  9FC00   9FFFF   1KB     EBDA(Extended BIOS Data Area)
+#  7E00    9FBFF   608KB   usable memory
+#  7C00    7DFF    512B    MBR 
+#  500     7BFF    30KB    usable memory
+#  400     4FF     256B    BIOS data area
+#  000     3FF     1KB     Interrupt Vector Table(IVT)
+#  ------------------------------------------------------
+
 .include "boot.h"
 
 .section .text
@@ -45,13 +61,14 @@ start:
     movw $0x2, %bx    /* black background and green characters */
     int $0x10
 
-    movl $LOADER_START_SECTOR, %eax
-    movw $LOADER_BASE_ADDR, %bx
+    /* load loader */
+    movl $LOADER_START_SECTOR, %eax   /* loader is at sector number 0x2 */
+    movw $LOADER_BASE_ADDR, %bx       /* loader base address is 0x900 */
     movw $0x8, %cx
     call rd_disk_m_16
 
     /* load OS kernel */
-    movl $KERNEL_START_SECTOR, %eax
+    movl $KERNEL_START_SECTOR, %eax   /* kernel is at sector number 0xa */
     movw $0x7000, %bx
     movw %bx, %ds
     movw $0x0, %bx

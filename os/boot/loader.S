@@ -10,21 +10,21 @@
 
 /* code segment descriptor */
 .equ DESC_CODE_WORD0, 0xffff
-.equ DESC_CODE_WORD1, 0x0
+.equ DESC_CODE_WORD1, 0x0000 
 .equ DESC_CODE_WORD2, 0x9800 
 .equ DESC_CODE_WORD3, 0x00cf
 
 /* data segment descriptor */
 .equ DESC_DATA_WORD0, 0xffff
-.equ DESC_DATA_WORD1, 0x0
+.equ DESC_DATA_WORD1, 0x0000
 .equ DESC_DATA_WORD2, 0x9200
 .equ DESC_DATA_WORD3, 0x00cf
 
 /* video data segment descriptor */
-.equ DESC_VIDEO_WORD0, 0x7
+.equ DESC_VIDEO_WORD0, 0x0007
 .equ DESC_VIDEO_WORD1, 0x8000
 .equ DESC_VIDEO_WORD2, 0x920b
-.equ DESC_VIDEO_WORD3, 0xc0
+.equ DESC_VIDEO_WORD3, 0x00c0
 
 .equ CRO_PE_ON, 0x00000001
 .equ CR0_PG_ON, 0x80000000
@@ -117,13 +117,15 @@ mem_get_ok:
 
     ljmp $SELECTOR_CODE, $p_mode_start
 
+/* now we are in protector mode */
 .code32
 p_mode_start:
     movw $SELECTOR_DATA, %ax
     movw %ax, %ds
     movw %ax, %es
     movw %ax, %ss
-    movl $LOADER_STACK_TOP, %esp
+    movw %ax, %fs
+    movl $LOADER_STACK_TOP, %esp /* %esp = 0x900 */
     movw $SELECTOR_VIDEO, %ax
     movw %ax, %gs
 
@@ -140,7 +142,7 @@ display0:
     addl $0x1, %esi
     loop display0
 
-    /* */
+    /* setup page table */
     call setup_page
     sgdt GDT_DESC
 
@@ -154,6 +156,7 @@ display0:
     addl $KERNEL_START_VA, GDT_DESC(, %edi, 0x2)
     addl $KERNEL_START_VA, %esp
 
+    /* page mode enable */
     movl $PAGE_DIR_TABLE_ADDR, %eax
     movl %eax, %cr3
 
@@ -182,7 +185,7 @@ enter_kernel:
 
     call kernel_init
     movl $0xc009f000, %esp
-    jmp KERNEL_ENTRY_POINT
+    jmp KERNEL_ENTRY_POINT    /* 0xc0001500 */
 
 spin:
     jmp spin
@@ -191,29 +194,34 @@ setup_page:
 /* setup page directory */
     movl $0x400, %ecx
     movl $0x0, %esi
-    movl $PAGE_DIR_TABLE_ADDR, %eax
+    movl $PAGE_DIR_TABLE_ADDR, %eax /* 0x100000 */
 .clear_page_dir:
     movl $0x0, (%eax, %esi, 0x1)
     addl $0x4, %esi
     loop .clear_page_dir
+
 .create_pde:
     movl $PAGE_DIR_TABLE_ADDR, %eax
     addl $0x1000, %eax  /* %eax store the first page table address */
-    movl %eax, %ebx
+    movl %eax, %ebx     /* %ebx store the first page table address */
     orl $(PG_US_U | PG_RW_W | PG_P), %eax
+    /* 0th page directory entry */
     movl $PAGE_DIR_TABLE_ADDR, %ecx
     movl %eax, (%ecx)
-    #movl $0xc00, %edi
+
+    /* 768th page directory entry */
     movl $768, %edi
     movl %eax, (%ecx, %edi, 0x4)
 
-    subl $0x1000, %eax  /* %eax store the last page direcotry entry */
+    /* 1023th page directory entry */
+    subl $0x1000, %eax  /* %eax store page direcotry table address */
     movl $4092, %edi
     movl %eax, (%ecx, %edi, 0x1)
 
-/* PTE */
+    /* PTE */
     movl $256, %ecx
     movl $0x0, %esi
+    movl $0x0, %edx
     movl $(PG_US_U | PG_RW_R | PG_P), %edx
 .create_pte:
     movl %edx, (%ebx, %esi, 0x4)
@@ -222,7 +230,7 @@ setup_page:
     loop .create_pte
 /* kernel PDE */
     movl $PAGE_DIR_TABLE_ADDR, %eax
-    addl 0x2000, %eax
+    addl $0x2000, %eax
     orl $(PG_US_U | PG_RW_W | PG_P), %eax
     movl $PAGE_DIR_TABLE_ADDR, %ebx
     movl $254, %ecx
@@ -230,10 +238,14 @@ setup_page:
 .create_kernel_pde:
     movl %eax, (%ebx, %esi, 0x4)
     incl %esi
-    addl 0x1000, %eax
+    addl $0x1000, %eax
     loop .create_kernel_pde
     ret
 
+/* 
+ * load each program segment at the specified memory location 
+ * according to ELF format 
+ */
 .type kernel_init, @function
 kernel_init:
     xorl %eax, %eax
@@ -309,9 +321,6 @@ GDT_END:                                 /* 0xc0000d40 */
 GDT_DESC:                                /* 0xc0000d48 */
     .word GDT_LIMIT
     .long GDT_BASE
-//.global TOTAL_MEM_BYTES
-//TOTAL_MEM_BYTES:
-//    .long 0
 ARDS_BUF:
     .rept 100
     .long 0
